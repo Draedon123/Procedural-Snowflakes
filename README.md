@@ -8,4 +8,3 @@
 
 - https://doi.org/10.1016/j.chaos.2004.06.071
 - https://www.redblobgames.com/grids/hexagons
-- https://observablehq.com/@jrus/hexround

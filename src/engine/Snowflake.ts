@@ -38,7 +38,7 @@ class Snowflake {
   }
 
   private update(): void {
-    if (this.initialised) {
+    if (!this.initialised) {
       return;
     }
 
