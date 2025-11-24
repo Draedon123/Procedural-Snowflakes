@@ -119,7 +119,7 @@ class GPUTimer {
     const beginPass =
       commandEncoder[
         passType === "render" ? "beginRenderPass" : "beginComputePass"
-      ];
+      ].bind(commandEncoder);
 
     // @ts-expect-error don't know how to fix this error but i swear i works
     const pass = beginPass({
