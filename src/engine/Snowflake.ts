@@ -47,6 +47,14 @@ class Snowflake {
       0,
       new Uint32Array([this.radius])
     );
+
+    // centre cell starts with a value of 1
+    const cellOffset = this.radius + 2 * this.radius * this.radius;
+    this.device.queue.writeBuffer(
+      this.buffer,
+      4 + cellOffset * Snowflake.CELL_BYTE_LENGTH,
+      new Float32Array([1])
+    );
   }
 
   public get initialised(): boolean {

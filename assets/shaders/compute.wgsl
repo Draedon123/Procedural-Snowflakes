@@ -34,7 +34,6 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let hexCoordinates: vec2i = pixelToHex(centredPixelCoordinates, hexRadius);
   let uncentredHexCoordinates: vec2u = vec2u(hexCoordinates + i32(cells.radius));
   let cellIndex: u32 = uncentredHexCoordinates.x + 2 * cells.radius * uncentredHexCoordinates.y;
-  let cellValue = select(0.0, 1.0, hexCoordinates.x == 0 && hexCoordinates.y == 0);
 
-  textureStore(output, id.xy, vec4f(vec3f(cellValue), 1.0));
+  textureStore(output, id.xy, vec4f(vec3f(cells.cells[cellIndex].value), 1.0));
 }
