@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Procedural Snowflakes</title>
+  </head>
+  <body>
+    <span id="alert"></span>
+    <div id="app">
+      <div id="info">
+        <h1 style="padding-right: 2ch; font-size: medium; display: inline">
+          Info Panel
+        </h1>
+        <input type="image" id="chevron" src="down-chevron.png" />
+        <div id="content">
+          Frame Time: <span id="frameTime"></span>
+          <br />
+          FPS: <span id="fps"></span>
+
+          <br />
+          <br />
+
+          <table class="config">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <canvas id="main"></canvas>
+    </div>
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>

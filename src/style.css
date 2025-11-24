@@ -1,0 +1,96 @@
+canvas#main {
+  width: 100vw;
+  height: 100vh;
+
+  background-color: #000;
+}
+
+#alert {
+  z-index: -1;
+  position: absolute;
+  color: white;
+  font-size: xx-large;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  align-content: center;
+}
+
+#alert.error {
+  color: red;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+
+  margin: 0;
+  overflow: hidden;
+
+  background-color: black;
+}
+
+#info {
+  position: fixed;
+  padding: 2px;
+
+  color: white;
+
+  opacity: 50%;
+  font-family: monospace;
+
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+
+  &:hover {
+    background-color: #000;
+    opacity: 100%;
+  }
+
+  z-index: 10;
+}
+
+#chevron {
+  height: 1em;
+  aspect-ratio: 1;
+  float: right;
+
+  transform: rotate(180deg);
+}
+
+#chevron.collapsed {
+  transform: rotate(0);
+}
+
+#content.collapsed {
+  height: 0;
+  opacity: 0;
+}
+
+input[type="range"] {
+  appearance: none;
+  height: 1em;
+  background: #808080;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border-radius: 10000px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 1em;
+  height: 1em;
+  background: #ae1adb;
+  cursor: pointer;
+  border-radius: 10000px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  appearance: none;
+  width: 1em;
+  height: 1em;
+  background: #ae1adb;
+  cursor: pointer;
+  border-radius: 10000px;
+}
