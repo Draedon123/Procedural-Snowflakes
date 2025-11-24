@@ -19,9 +19,9 @@ class Snowflake {
     this._radius = radius;
   }
 
-  public initialise(device: GPUDevice): void {
+  public initialise(device: GPUDevice): this {
     if (this.initialised) {
-      return;
+      return this;
     }
 
     this.device = device;
@@ -33,10 +33,12 @@ class Snowflake {
     });
 
     this.update();
+
+    return this;
   }
 
   private update(): void {
-    if (!this.initialised) {
+    if (this.initialised) {
       return;
     }
 
@@ -48,7 +50,7 @@ class Snowflake {
   }
 
   public get initialised(): boolean {
-    return this.buffer !== null;
+    return this.buffer !== undefined;
   }
 
   public get radius(): number {

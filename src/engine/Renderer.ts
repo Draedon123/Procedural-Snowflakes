@@ -3,6 +3,7 @@ import { GPUTimer } from "../utils/GPUTimer";
 import { resolveBasePath } from "../utils/resolveBasePath";
 import { roundUp16Bytes } from "../utils/roundUp16Bytes";
 import { Shader } from "./Shader";
+import { Snowflake } from "./Snowflake";
 
 type RendererSettings = {
   timing?: Partial<{
@@ -20,7 +21,8 @@ class Renderer {
   );
 
   public readonly canvas: HTMLCanvasElement;
-  public readonly settings: Omit<RendererSettings, "blackHole">;
+  public readonly settings: RendererSettings;
+  public readonly snowflake: Snowflake;
 
   private readonly device: GPUDevice;
   private readonly ctx: GPUCanvasContext;
@@ -56,6 +58,7 @@ class Renderer {
     this.device = device;
     this.ctx = ctx;
     this.canvasFormat = "rgba8unorm";
+    this.snowflake = new Snowflake(50).initialise(this.device);
     this.gpuTimer = new GPUTimer(this.device, (time) => {
       const microseconds = time / 1e3;
       const milliseconds = time / 1e6;
@@ -142,6 +145,10 @@ class Renderer {
         },
         {
           binding: 1,
+          resource: { buffer: this.snowflake.buffer },
+        },
+        {
+          binding: 2,
           resource: this.renderTexture.createView(),
         },
       ],
@@ -269,6 +276,11 @@ class Renderer {
         },
         {
           binding: 1,
+          buffer: { type: "storage" },
+          visibility: GPUShaderStage.COMPUTE,
+        },
+        {
+          binding: 2,
           storageTexture: {
             access: "write-only",
             format: "rgba8unorm",

@@ -2,8 +2,19 @@ struct Settings {
   placeholder: f32,
 }
 
+struct Cells {
+  // axial coordinates
+  radius: u32,
+  cells: array<Cell>,
+}
+
+struct Cell {
+  value: f32,
+}
+
 @group(0) @binding(0) var <uniform> settings: Settings;
-@group(0) @binding(1) var output: texture_storage_2d<rgba8unorm, write>;
+@group(0) @binding(1) var <storage> cells: Cells;
+@group(0) @binding(2) var output: texture_storage_2d<rgba8unorm, write>;
 
 @compute
 @workgroup_size(8, 8, 1)
