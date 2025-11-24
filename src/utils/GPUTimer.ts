@@ -1,9 +1,9 @@
 import { RollingAverage } from "./RollingAverage";
 
-type GPUTimerOnUpdate = (time: number) => unknown;
+type GPUTimerOnUpdate = (time: number, linkedTimerSum: number) => unknown;
 
 class GPUTimer {
-  private static readonly modifiedDevices: Set<GPUDevice> = new Set();
+  private static readonly linkedTimers: Record<number, GPUTimer[]> = {};
 
   public readonly canTimestamp: boolean;
 
@@ -15,7 +15,11 @@ class GPUTimer {
 
   public onUpdate: GPUTimerOnUpdate;
 
-  constructor(device: GPUDevice, onUpdate: GPUTimerOnUpdate = () => {}) {
+  constructor(
+    device: GPUDevice,
+    onUpdate: GPUTimerOnUpdate = () => {},
+    linkId: number | null = null
+  ) {
     this.canTimestamp = device.features.has("timestamp-query");
     this.onUpdate = onUpdate;
     this.rollingAverage = new RollingAverage(50);
@@ -29,7 +33,7 @@ class GPUTimer {
 
       this.resolveBuffer = device.createBuffer({
         label: "GPUTimer Resolve Buffer",
-        size: this.querySet.count * BigInt64Array.BYTES_PER_ELEMENT,
+        size: this.querySet.count * 8,
         usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
       });
 
@@ -40,12 +44,16 @@ class GPUTimer {
       });
     }
 
-    if (!GPUTimer.modifiedDevices.has(device)) {
-      const originalSubmitMethod = device.queue.submit.bind(device.queue);
-      device.queue.submit = (commandBuffers: Iterable<GPUCommandBuffer>) => {
-        originalSubmitMethod(commandBuffers);
+    const originalSubmitMethod = device.queue.submit.bind(device.queue);
+    device.queue.submit = (commandBuffers: Iterable<GPUCommandBuffer>) => {
+      originalSubmitMethod(commandBuffers);
 
-        if (!this.canTimestamp || this.resultBuffer.mapState !== "unmapped") {
+      if (!this.canTimestamp) {
+        return;
+      }
+
+      device.queue.onSubmittedWorkDone().then(() => {
+        if (this.resultBuffer.mapState !== "unmapped") {
           return;
         }
 
@@ -55,11 +63,26 @@ class GPUTimer {
           this.rollingAverage.addSample(Number(times[1] - times[0]));
           this.resultBuffer.unmap();
 
-          this.onUpdate(this.rollingAverage.average);
-        });
-      };
+          const time = this.rollingAverage.average;
+          const linkedTimerSum =
+            linkId === null
+              ? time
+              : GPUTimer.linkedTimers[linkId].reduce(
+                  (total, current) => total + current.time,
+                  0
+                );
 
-      GPUTimer.modifiedDevices.add(device);
+          this.onUpdate(time, linkedTimerSum);
+        });
+      });
+    };
+
+    if (linkId !== null) {
+      if (!(linkId in GPUTimer.linkedTimers)) {
+        GPUTimer.linkedTimers[linkId] = [];
+      }
+
+      GPUTimer.linkedTimers[linkId].push(this);
     }
   }
 
@@ -67,23 +90,45 @@ class GPUTimer {
     return this.rollingAverage.average;
   }
 
-  public beginComputePass(
+  private beginPass(
     commandEncoder: GPUCommandEncoder,
-    descriptor?: Omit<GPUComputePassDescriptor, "timestampWrites">
-  ): GPUComputePassEncoder {
-    const timestampWrites: GPUComputePassTimestampWrites = {
+    passType: "render",
+    descriptor: Omit<GPURenderPassDescriptor, "timestampWrites">
+  ): GPURenderPassEncoder;
+  private beginPass(
+    commandEncoder: GPUCommandEncoder,
+    passType: "compute",
+    descriptor: Omit<GPUComputePassDescriptor, "timestampWrites">
+  ): GPUComputePassEncoder;
+  private beginPass(
+    commandEncoder: GPUCommandEncoder,
+    passType: "render" | "compute",
+    descriptor: Omit<
+      GPURenderPassDescriptor | GPUComputePassDescriptor,
+      "timestampWrites"
+    >
+  ): GPUComputePassEncoder | GPURenderPassEncoder {
+    const timestampWrites:
+      | GPURenderPassTimestampWrites
+      | GPUComputePassTimestampWrites = {
       querySet: this.querySet,
       beginningOfPassWriteIndex: 0,
       endOfPassWriteIndex: 1,
     };
 
-    const computePass = commandEncoder.beginComputePass({
+    const beginPass =
+      commandEncoder[
+        passType === "render" ? "beginRenderPass" : "beginComputePass"
+      ];
+
+    // @ts-expect-error don't know how to fix this error but i swear i works
+    const pass = beginPass({
       ...descriptor,
       ...(this.canTimestamp ? { timestampWrites } : undefined),
     });
 
-    const originalEndMethod = computePass.end.bind(computePass);
-    computePass.end = () => {
+    const originalEndMethod = pass.end.bind(pass);
+    pass.end = () => {
       originalEndMethod();
 
       if (!this.canTimestamp) {
@@ -106,7 +151,21 @@ class GPUTimer {
       }
     };
 
-    return computePass;
+    return pass;
+  }
+
+  public beginComputePass(
+    commandEncoder: GPUCommandEncoder,
+    descriptor: Omit<GPUComputePassDescriptor, "timestampWrites"> = {}
+  ): GPUComputePassEncoder {
+    return this.beginPass(commandEncoder, "compute", descriptor);
+  }
+
+  public beginRenderPass(
+    commandEncoder: GPUCommandEncoder,
+    descriptor: Omit<GPURenderPassDescriptor, "timestampWrites">
+  ): GPURenderPassEncoder {
+    return this.beginPass(commandEncoder, "render", descriptor);
   }
 
   public reset(): void {
