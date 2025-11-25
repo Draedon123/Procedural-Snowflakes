@@ -231,10 +231,9 @@ class Renderer {
   }
 
   public render(): void {
-    this.snowflake.nextState();
-
     this.computeShaders.stage1.run();
     this.computeShaders.stage2.run();
+    this.snowflake.nextState();
     this.computeShaders.renderCells.run();
 
     this.renderToCanvas();
