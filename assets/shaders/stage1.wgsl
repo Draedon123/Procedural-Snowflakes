@@ -1,16 +1,20 @@
+#!import cells
+
 struct Settings {
   placeholder: f32,
-}
-
-struct Cells {
-  // axial coordinates
-  radius: u32,
-  cells: array<Cell>,
 }
 
 @group(0) @binding(0) var <uniform> settings: Settings;
 @group(0) @binding(0) var <storage> cells: Cells;
 
-fn main() {
+@compute
+@workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) id: vec3u) {
+  let axial: vec2i = vec2i(id.xy) - cells.radius;
+  if(abs(axial.x) > cells.radius || abs(axial.y) > cell.radius){
+    return;
+  }
 
+  let index: u32 = getCellIndex(axial);
+  
 }

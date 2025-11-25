@@ -1,17 +1,8 @@
 #!import hex
+#!import cells
 
 struct Settings {
   placeholder: f32,
-}
-
-struct Cells {
-  // axial coordinates
-  radius: u32,
-  cells: array<Cell>,
-}
-
-struct Cell {
-  value: f32,
 }
 
 @group(0) @binding(0) var <uniform> settings: Settings;
@@ -32,8 +23,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let centredPixelCoordinates: vec2i = vec2i(coords) - vec2i(0.5 * dimensions);
   let hexRadius: f32 = 0.95 * min(dimensions.x, dimensions.y) / f32(2 * cells.radius);
   let hexCoordinates: vec2i = pixelToHex(centredPixelCoordinates, hexRadius);
-  let uncentredHexCoordinates: vec2u = vec2u(hexCoordinates + i32(cells.radius));
-  let cellIndex: u32 = uncentredHexCoordinates.x + 2 * cells.radius * uncentredHexCoordinates.y;
+  let cellIndex: u32 = getCellIndex(hexCoordinates);
 
   textureStore(output, id.xy, vec4f(vec3f(cells.cells[cellIndex].value), 1.0));
 }
