@@ -21,8 +21,13 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   }
 
   let centredPixelCoordinates: vec2i = vec2i(coords) - vec2i(0.5 * dimensions);
-  let hexRadius: f32 = 0.95 * min(dimensions.x, dimensions.y) / f32(2 * cells.radius);
+  let hexRadius: f32 = min(dimensions.x, dimensions.y) / f32(3 * cells.radius);
   let hexCoordinates: vec2i = pixelToHex(centredPixelCoordinates, hexRadius);
+
+  if(!isInBounds(hexCoordinates, i32(cells.radius))){
+    return;
+  }
+
   let cellIndex: u32 = getCellIndex(hexCoordinates);
 
   textureStore(output, id.xy, vec4f(vec3f(getValue(&cells.cells[cellIndex])), 1.0));

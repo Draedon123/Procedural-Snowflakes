@@ -7,7 +7,7 @@
 @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   let axial: vec2i = vec2i(id.xy) - i32(cells.radius);
-  if(abs(axial.x) > i32(cells.radius) || abs(axial.y) > i32(cells.radius)){
+  if(!isInBounds(axial, i32(cells.radius))){
     return;
   }
 

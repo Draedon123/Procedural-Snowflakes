@@ -14,7 +14,7 @@ struct Settings {
 @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   let axial: vec2i = vec2i(id.xy) - i32(cells.radius);
-  if(abs(axial.x) > i32(cells.radius) || abs(axial.y) > i32(cells.radius)){
+  if(!isInBounds(axial, i32(cells.radius))){
     return;
   }
 
@@ -26,10 +26,13 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   var average: f32 = select(0.5 * cellValue, 0.0, cell.receptive == 1);
   
   for(var i: u32 = 0; i < 6; i++){
-    let neighbourIndex: u32 = getCellIndex(cellNeighbours[i]);
+    let neighbourPosition: vec2i = cellNeighbours[i];
+    let neighbourIndex: u32 = getCellIndex(neighbourPosition);
     let neighbour: Cell = cells.cells[neighbourIndex];
-    value += select(getValue(&cells.cells[neighbourIndex]) / 12.0, 0.0, neighbour.receptive == 1);
+    let neighbourValue: f32 = select(settings.beta, getValue(&cells.cells[neighbourIndex]), isInBounds(neighbourPosition, i32(cells.radius)));
+    
+    average += select(neighbourValue / 12.0, 0.0, neighbour.receptive == 1);
   }
 
-  setValue(&cells.cells[index], value, cells.useValue);
+  setValue(&cells.cells[index], value + average, cells.useValue);
 }

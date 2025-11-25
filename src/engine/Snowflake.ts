@@ -55,11 +55,6 @@ class Snowflake {
       const q = (i % (2 * this.radius)) - this.radius;
       const r = Math.floor(i / (2 * this.radius)) - this.radius;
 
-      if (Math.abs(q) > this.radius || Math.abs(r) > this.radius) {
-        bufferWriter.pad(Snowflake.CELL_BYTE_LENGTH);
-        continue;
-      }
-
       const value = q === 0 && r === 0 ? 1 : this.backgroundLevel;
 
       bufferWriter.writeFloat32(value);
