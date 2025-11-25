@@ -3,6 +3,7 @@ import { GPUTimer } from "../utils/GPUTimer";
 import { resolveBasePath } from "../utils/resolveBasePath";
 import { roundUp16Bytes } from "../utils/roundUp16Bytes";
 import { RenderCells } from "./compute/RenderCells";
+import { Stage1 } from "./compute/Stage1";
 import { Shader } from "./Shader";
 import { Snowflake } from "./Snowflake";
 
@@ -27,7 +28,10 @@ class Renderer {
   private readonly canvasFormat: GPUTextureFormat;
   private readonly gpuTimer: GPUTimer;
 
-  private readonly renderCells: RenderCells;
+  private readonly computeShaders: {
+    renderCells: RenderCells;
+    stage1: Stage1;
+  };
 
   private initialised: boolean;
 
@@ -53,7 +57,11 @@ class Renderer {
     this.ctx = ctx;
     this.canvasFormat = "rgba8unorm";
     this.snowflake = new Snowflake(50).initialise(this.device);
-    this.renderCells = new RenderCells(this);
+    this.computeShaders = {
+      renderCells: new RenderCells(this),
+      stage1: new Stage1(this),
+    };
+
     this.gpuTimer = new GPUTimer(this.device, (time) => {
       const microseconds = time / 1e3;
       const milliseconds = time / 1e6;
@@ -98,7 +106,7 @@ class Renderer {
         },
         {
           binding: 1,
-          resource: this.renderCells.renderTexture.createView(),
+          resource: this.computeShaders.renderCells.renderTexture.createView(),
         },
         {
           binding: 2,
@@ -113,7 +121,8 @@ class Renderer {
       return;
     }
 
-    await this.renderCells.initialise(this.device);
+    await this.computeShaders.renderCells.initialise(this.device);
+    await this.computeShaders.stage1.initialise(this.device);
     await this.initialiseRendering();
 
     this.updateSettings();
@@ -129,7 +138,7 @@ class Renderer {
 
       this.gpuTimer.reset();
 
-      this.renderCells.updateRenderTextureAndBindGroups();
+      this.computeShaders.renderCells.updateRenderTextureAndBindGroups();
       this.renderBindGroup = this.createRenderBindGroup();
 
       this.render();
@@ -213,7 +222,8 @@ class Renderer {
   }
 
   public render(): void {
-    this.renderCells.run();
+    this.computeShaders.stage1.run();
+    this.computeShaders.renderCells.run();
     this.renderToCanvas();
   }
 
