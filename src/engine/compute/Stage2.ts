@@ -1,0 +1,127 @@
+import { clamp } from "../../utils/clamp";
+import { resolveBasePath } from "../../utils/resolveBasePath";
+import { roundUp16Bytes } from "../../utils/roundUp16Bytes";
+import { Renderer } from "../Renderer";
+import { ComputeShader } from "./ComputeShader";
+
+class Stage2 extends ComputeShader {
+  private static readonly SETTINGS_BYTE_LENGTH: number = roundUp16Bytes(3 * 4);
+
+  protected override bindGroup!: GPUBindGroup;
+  protected override computePipeline!: GPUComputePipeline;
+
+  private readonly renderer: Renderer;
+  private settingsBuffer!: GPUBuffer;
+
+  private _alpha!: number;
+  private _beta!: number;
+  private _gamma!: number;
+  constructor(renderer: Renderer) {
+    super(resolveBasePath("shaders/stage2.wgsl"));
+
+    this.renderer = renderer;
+
+    this.alpha = 1;
+    this.beta = 0.4;
+    this.gamma = 0.001;
+  }
+
+  public override async initialise(device: GPUDevice): Promise<void> {
+    if (this.initialised) {
+      return;
+    }
+
+    await super.initialise(device);
+
+    this.settingsBuffer = device.createBuffer({
+      label: "Stage 2 Shader Settings Buffer",
+      size: Stage2.SETTINGS_BYTE_LENGTH,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+
+    const bindGroupLayout = device.createBindGroupLayout({
+      label: "Stage 2 Shader Bind Group Layout",
+      entries: [
+        {
+          binding: 0,
+          buffer: { type: "storage" },
+          visibility: GPUShaderStage.COMPUTE,
+        },
+      ],
+    });
+
+    const computePipelineLayout = device.createPipelineLayout({
+      label: "Stage 2 Shader Compute Pipeline Layout",
+      bindGroupLayouts: [bindGroupLayout],
+    });
+
+    this.bindGroup = device.createBindGroup({
+      label: "Stage 2 Shader Bind Group",
+      layout: bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: { buffer: this.renderer.snowflake.buffer },
+        },
+      ],
+    });
+
+    this.computePipeline = device.createComputePipeline({
+      label: "Stage 2 Shader Compute Pipeline",
+      layout: computePipelineLayout,
+      compute: {
+        module: this.shader.shader,
+        entryPoint: "main",
+      },
+    });
+  }
+
+  public override get workgroupSize(): [number, number, number] {
+    return [
+      Math.ceil((2 * this.renderer.snowflake.radius) / 8),
+      Math.ceil((2 * this.renderer.snowflake.radius) / 8),
+      1,
+    ];
+  }
+
+  private updateSettings(): void {
+    if (!this.initialised) {
+      return;
+    }
+
+    this.device.queue.writeBuffer(
+      this.settingsBuffer,
+      0,
+      new Float32Array([this.alpha, this.beta, this.gamma])
+    );
+  }
+
+  public get alpha(): number {
+    return this._alpha;
+  }
+
+  public get beta(): number {
+    return this._beta;
+  }
+
+  public get gamma(): number {
+    return this._gamma;
+  }
+
+  public set alpha(alpha: number) {
+    this._alpha = alpha;
+    this.updateSettings();
+  }
+
+  public set beta(beta: number) {
+    this._beta = clamp(beta, 0, 1);
+    this.updateSettings();
+  }
+
+  public set gamma(gamma: number) {
+    this._gamma = clamp(gamma, 0, 1);
+    this.updateSettings();
+  }
+}
+
+export { Stage2 };

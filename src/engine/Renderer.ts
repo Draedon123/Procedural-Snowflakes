@@ -4,6 +4,7 @@ import { resolveBasePath } from "../utils/resolveBasePath";
 import { roundUp16Bytes } from "../utils/roundUp16Bytes";
 import { RenderCells } from "./compute/RenderCells";
 import { Stage1 } from "./compute/Stage1";
+import { Stage2 } from "./compute/Stage2";
 import { Shader } from "./Shader";
 import { Snowflake } from "./Snowflake";
 
@@ -31,6 +32,7 @@ class Renderer {
   private readonly computeShaders: {
     renderCells: RenderCells;
     stage1: Stage1;
+    stage2: Stage2;
   };
 
   private initialised: boolean;
@@ -60,6 +62,7 @@ class Renderer {
     this.computeShaders = {
       renderCells: new RenderCells(this),
       stage1: new Stage1(this),
+      stage2: new Stage2(this),
     };
 
     this.gpuTimer = new GPUTimer(
@@ -227,6 +230,7 @@ class Renderer {
 
   public render(): void {
     this.computeShaders.stage1.run();
+    this.computeShaders.stage2.run();
     this.computeShaders.renderCells.run();
     this.renderToCanvas();
   }
