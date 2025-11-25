@@ -21,9 +21,9 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     let neighbourIndex: u32 = getCellIndex(neighbour);
     let neighbourValue: f32 = cells.cells[neighbourIndex].value;
 
-    receptive = max(receptive, 1 - u32(step(neighbourValue, 1.0)));
+    receptive = max(receptive, select(0u, 1u, neighbourValue >= 1.0));
   }
 
-  receptive = max(receptive, 1 - u32(step(cells.cells[index].value, 1.0)));
+  receptive = max(receptive, select(0u, 1u, cells.cells[index].value >= 1.0));
   cells.cells[index].receptive = receptive;
 }
