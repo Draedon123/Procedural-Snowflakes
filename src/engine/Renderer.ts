@@ -62,26 +62,30 @@ class Renderer {
       stage1: new Stage1(this),
     };
 
-    this.gpuTimer = new GPUTimer(this.device, (time) => {
-      const microseconds = time / 1e3;
-      const milliseconds = time / 1e6;
-      const seconds = time / 1e9;
-      const useMilliseconds = milliseconds > 1;
-      const displayTime = (
-        useMilliseconds ? milliseconds : microseconds
-      ).toFixed(2);
-      const prefix = useMilliseconds ? "ms" : "μs";
+    this.gpuTimer = new GPUTimer(
+      this.device,
+      (_, totalTime) => {
+        const microseconds = totalTime / 1e3;
+        const milliseconds = totalTime / 1e6;
+        const seconds = totalTime / 1e9;
+        const useMilliseconds = milliseconds > 1;
+        const displayTime = (
+          useMilliseconds ? milliseconds : microseconds
+        ).toFixed(2);
+        const prefix = useMilliseconds ? "ms" : "μs";
 
-      if (this.settings.timing?.frameTimeElement !== undefined) {
-        this.settings.timing.frameTimeElement.textContent =
-          displayTime + prefix;
-      }
+        if (this.settings.timing?.frameTimeElement !== undefined) {
+          this.settings.timing.frameTimeElement.textContent =
+            displayTime + prefix;
+        }
 
-      if (this.settings.timing?.fpsElement !== undefined) {
-        const fps = 1 / seconds;
-        this.settings.timing.fpsElement.textContent = fps.toFixed(2);
-      }
-    });
+        if (this.settings.timing?.fpsElement !== undefined) {
+          const fps = 1 / seconds;
+          this.settings.timing.fpsElement.textContent = fps.toFixed(2);
+        }
+      },
+      1
+    );
 
     this.initialised = false;
     this.settings = {
@@ -229,7 +233,7 @@ class Renderer {
 
   private renderToCanvas(): void {
     const commandEncoder = this.device.createCommandEncoder();
-    const renderPass = commandEncoder.beginRenderPass({
+    const renderPass = this.gpuTimer.beginRenderPass(commandEncoder, {
       colorAttachments: [
         {
           view: this.ctx.getCurrentTexture().createView(),
