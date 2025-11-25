@@ -11,12 +11,12 @@ class Snowflake {
       Snowflake.MAX_RADIUS *
       Snowflake.CELL_BYTE_LENGTH;
 
-  private _radius: number;
+  private _radius!: number;
   private device!: GPUDevice;
   public buffer!: GPUBuffer;
 
   constructor(radius: number) {
-    this._radius = radius;
+    this.radius = radius;
   }
 
   public initialise(device: GPUDevice): this {

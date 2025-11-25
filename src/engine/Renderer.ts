@@ -208,7 +208,7 @@ class Renderer {
 
     const shader = await Shader.fetch(
       this.device,
-      resolveBasePath("shaders/render.wgsl")
+      resolveBasePath("shaders/renderTexture.wgsl")
     );
 
     this.renderBindGroupLayout = this.device.createBindGroupLayout({
@@ -263,7 +263,7 @@ class Renderer {
 
     const shader = await Shader.fetch(
       this.device,
-      resolveBasePath("shaders/compute.wgsl")
+      resolveBasePath("shaders/renderCells.wgsl")
     );
 
     this.computeBindGroupLayout = this.device.createBindGroupLayout({
