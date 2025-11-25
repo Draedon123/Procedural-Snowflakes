@@ -22,6 +22,10 @@ class RenderCells extends ComputeShader {
   }
 
   public override async initialise(device: GPUDevice): Promise<void> {
+    if (this.initialised) {
+      return;
+    }
+
     await super.initialise(device);
 
     this.settingsBuffer = device.createBuffer({
