@@ -39,3 +39,14 @@ fn pixelToHex(pixel: vec2i, hexRadius: f32) -> vec2i {
 
   return axialRound(axial);
 }
+
+fn neighbours(axial: vec2i) -> array<vec2i, 6> {
+  return array(
+    axial + vec2i( 1,  0),
+    axial + vec2i( 1, -1),
+    axial + vec2i( 0, -1),
+    axial + vec2i(-1,  0),
+    axial + vec2i(-1,  1),
+    axial + vec2i( 0,  1),
+  );
+}
