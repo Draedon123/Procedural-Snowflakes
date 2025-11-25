@@ -1,4 +1,5 @@
 #!import cells
+#!import hex
 
 struct Settings {
   alpha: f32,
@@ -7,10 +8,28 @@ struct Settings {
 }
 
 @group(0) @binding(0) var <uniform> settings: Settings;
-@group(0) @binding(1) var <storage, read_write>: cells: Cells;
+@group(0) @binding(1) var <storage, read_write> cells: Cells;
 
 @compute
-@workgroup_size(8, 8, 8)
+@workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
+  let axial: vec2i = vec2i(id.xy) - i32(cells.radius);
+  if(abs(axial.x) > i32(cells.radius) || abs(axial.y) > i32(cells.radius)){
+    return;
+  }
 
+  let index: u32 = getCellIndex(axial);
+  let cell: Cell = cells.cells[index];
+  let cellValue = getValue(&cells.cells[index]);
+  let cellNeighbours: array<vec2i, 6> = neighbours(axial);
+  var value: f32 = select(0.0, cellValue + settings.gamma, cell.receptive == 1);
+  var average: f32 = select(0.5 * cellValue, 0.0, cell.receptive == 1);
+  
+  for(var i: u32 = 0; i < 6; i++){
+    let neighbourIndex: u32 = getCellIndex(cellNeighbours[i]);
+    let neighbour: Cell = cells.cells[neighbourIndex];
+    value += select(getValue(&cells.cells[neighbourIndex]) / 12.0, 0.0, neighbour.receptive == 1);
+  }
+
+  setValue(&cells.cells[index], value, cells.useValue);
 }

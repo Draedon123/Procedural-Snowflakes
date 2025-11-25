@@ -1,22 +1,27 @@
+import { BufferWriter } from "../utils/BufferWriter";
 import { clamp } from "../utils/clamp";
 
 class Snowflake {
   public static readonly MAX_RADIUS: number = 100;
 
-  private static readonly CELL_BYTE_LENGTH: number = 2 * 4;
+  private static readonly CELL_BYTE_LENGTH: number = 3 * 4;
   private static readonly BYTE_LENGTH: number =
-    4 +
+    2 * 4 +
     4 *
       Snowflake.MAX_RADIUS *
       Snowflake.MAX_RADIUS *
       Snowflake.CELL_BYTE_LENGTH;
 
+  private state: 0 | 1;
   private _radius!: number;
+  private _backgroundLevel!: number;
   private device!: GPUDevice;
   public buffer!: GPUBuffer;
 
   constructor(radius: number) {
     this.radius = radius;
+    this.backgroundLevel = 0;
+    this.state = 0;
   }
 
   public initialise(device: GPUDevice): this {
@@ -42,23 +47,43 @@ class Snowflake {
       return;
     }
 
-    this.device.queue.writeBuffer(
-      this.buffer,
-      0,
-      new Uint32Array([this.radius])
-    );
+    const bufferWriter = new BufferWriter(Snowflake.BYTE_LENGTH);
+    bufferWriter.writeUint32(this.radius);
+    bufferWriter.writeUint32(this.state);
 
-    // centre cell starts with a value of 1
-    const cellOffset = this.radius + 2 * this.radius * this.radius;
-    this.device.queue.writeBuffer(
-      this.buffer,
-      4 + cellOffset * Snowflake.CELL_BYTE_LENGTH,
-      new Float32Array([1])
-    );
+    for (let i = 0; i < 4 * this.radius * this.radius; i++) {
+      const q = (i % (2 * this.radius)) - this.radius;
+      const r = Math.floor(i / (2 * this.radius)) - this.radius;
+
+      if (Math.abs(q) > this.radius || Math.abs(r) > this.radius) {
+        bufferWriter.pad(Snowflake.CELL_BYTE_LENGTH);
+        continue;
+      }
+
+      const value = q === 0 && r === 0 ? 1 : this.backgroundLevel;
+
+      bufferWriter.writeFloat32(value);
+      bufferWriter.writeFloat32(value);
+      bufferWriter.writeUint32(0);
+    }
+
+    this.device.queue.writeBuffer(this.buffer, 0, bufferWriter.buffer);
   }
 
   public get initialised(): boolean {
     return this.buffer !== undefined;
+  }
+
+  public nextState(): void {
+    this.state = this.state === 0 ? 1 : 0;
+
+    if (this.initialised) {
+      this.device.queue.writeBuffer(
+        this.buffer,
+        4,
+        new Uint32Array([this.state])
+      );
+    }
   }
 
   public get radius(): number {
@@ -67,6 +92,16 @@ class Snowflake {
 
   public set radius(radius: number) {
     this._radius = clamp(radius, 1, Snowflake.MAX_RADIUS);
+    this.update();
+  }
+
+  public get backgroundLevel(): number {
+    return this._backgroundLevel;
+  }
+
+  // no checks
+  public set backgroundLevel(backgroundLevel: number) {
+    this._backgroundLevel = backgroundLevel;
     this.update();
   }
 }

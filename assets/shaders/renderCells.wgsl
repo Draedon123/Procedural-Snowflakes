@@ -25,5 +25,5 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let hexCoordinates: vec2i = pixelToHex(centredPixelCoordinates, hexRadius);
   let cellIndex: u32 = getCellIndex(hexCoordinates);
 
-  textureStore(output, id.xy, vec4f(vec3f(cells.cells[cellIndex].value), 1.0));
+  textureStore(output, id.xy, vec4f(vec3f(getValue(&cells.cells[cellIndex])), 1.0));
 }

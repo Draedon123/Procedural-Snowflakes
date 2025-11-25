@@ -130,6 +130,7 @@ class Renderer {
 
     await this.computeShaders.renderCells.initialise(this.device);
     await this.computeShaders.stage1.initialise(this.device);
+    await this.computeShaders.stage2.initialise(this.device);
     await this.initialiseRendering();
 
     this.updateSettings();
@@ -148,7 +149,8 @@ class Renderer {
       this.computeShaders.renderCells.updateRenderTextureAndBindGroups();
       this.renderBindGroup = this.createRenderBindGroup();
 
-      this.render();
+      this.computeShaders.renderCells.run();
+      this.renderToCanvas();
     }).observe(this.canvas);
 
     this.initialised = true;
@@ -229,9 +231,12 @@ class Renderer {
   }
 
   public render(): void {
+    this.snowflake.nextState();
+
     this.computeShaders.stage1.run();
     this.computeShaders.stage2.run();
     this.computeShaders.renderCells.run();
+
     this.renderToCanvas();
   }
 

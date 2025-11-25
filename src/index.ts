@@ -24,7 +24,8 @@ async function main(): Promise<void> {
     renderer.render();
   });
 
-  loop.start();
+  // loop.start();
+  window.next = () => renderer.render();
 }
 
 main().catch((error) => {

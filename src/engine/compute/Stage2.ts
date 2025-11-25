@@ -36,7 +36,7 @@ class Stage2 extends ComputeShader {
     this.settingsBuffer = device.createBuffer({
       label: "Stage 2 Shader Settings Buffer",
       size: Stage2.SETTINGS_BYTE_LENGTH,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
     const bindGroupLayout = device.createBindGroupLayout({
@@ -44,6 +44,11 @@ class Stage2 extends ComputeShader {
       entries: [
         {
           binding: 0,
+          buffer: { type: "uniform" },
+          visibility: GPUShaderStage.COMPUTE,
+        },
+        {
+          binding: 1,
           buffer: { type: "storage" },
           visibility: GPUShaderStage.COMPUTE,
         },
@@ -61,6 +66,10 @@ class Stage2 extends ComputeShader {
       entries: [
         {
           binding: 0,
+          resource: { buffer: this.settingsBuffer },
+        },
+        {
+          binding: 1,
           resource: { buffer: this.renderer.snowflake.buffer },
         },
       ],
@@ -115,6 +124,7 @@ class Stage2 extends ComputeShader {
 
   public set beta(beta: number) {
     this._beta = clamp(beta, 0, 1);
+    this.renderer.snowflake.backgroundLevel = this.beta;
     this.updateSettings();
   }
 

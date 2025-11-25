@@ -19,11 +19,11 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   for(var i: u32 = 0; i < 6; i++){
     let neighbour: vec2i = cellNeighbours[i];
     let neighbourIndex: u32 = getCellIndex(neighbour);
-    let neighbourValue: f32 = cells.cells[neighbourIndex].value;
+    let neighbourValue: f32 = getValue(&cells.cells[neighbourIndex]);
 
     receptive = max(receptive, select(0u, 1u, neighbourValue >= 1.0));
   }
 
-  receptive = max(receptive, select(0u, 1u, cells.cells[index].value >= 1.0));
+  receptive = max(receptive, select(0u, 1u, getValue(&cells.cells[index]) >= 1.0));
   cells.cells[index].receptive = receptive;
 }
