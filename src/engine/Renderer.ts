@@ -2,6 +2,7 @@ import { BufferWriter } from "../utils/BufferWriter";
 import { GPUTimer } from "../utils/GPUTimer";
 import { resolveBasePath } from "../utils/resolveBasePath";
 import { roundUp16Bytes } from "../utils/roundUp16Bytes";
+import { RenderCells } from "./compute/RenderCells";
 import { Shader } from "./Shader";
 import { Snowflake } from "./Snowflake";
 
@@ -16,9 +17,6 @@ class Renderer {
   private static readonly RENDER_SETTINGS_BYTE_LENGTH: number = roundUp16Bytes(
     1 * Float32Array.BYTES_PER_ELEMENT
   );
-  private static readonly COMPUTE_SETTINGS_BYTE_LENGTH: number = roundUp16Bytes(
-    1 * Float32Array.BYTES_PER_ELEMENT
-  );
 
   public readonly canvas: HTMLCanvasElement;
   public readonly settings: RendererSettings;
@@ -29,19 +27,15 @@ class Renderer {
   private readonly canvasFormat: GPUTextureFormat;
   private readonly gpuTimer: GPUTimer;
 
+  private readonly renderCells: RenderCells;
+
   private initialised: boolean;
 
   private renderSettingsBuffer!: GPUBuffer;
   private renderBindGroupLayout!: GPUBindGroupLayout;
   private renderBindGroup!: GPUBindGroup;
   private renderPipeline!: GPURenderPipeline;
-  private renderTexture!: GPUTexture;
   private sampler!: GPUSampler;
-
-  private computeSettingsBuffer!: GPUBuffer;
-  private computeBindGroupLayout!: GPUBindGroupLayout;
-  private computeBindGroup!: GPUBindGroup;
-  private computePipeline!: GPUComputePipeline;
 
   private constructor(
     canvas: HTMLCanvasElement,
@@ -59,6 +53,7 @@ class Renderer {
     this.ctx = ctx;
     this.canvasFormat = "rgba8unorm";
     this.snowflake = new Snowflake(50).initialise(this.device);
+    this.renderCells = new RenderCells(this);
     this.gpuTimer = new GPUTimer(this.device, (time) => {
       const microseconds = time / 1e3;
       const milliseconds = time / 1e6;
@@ -92,27 +87,6 @@ class Renderer {
     return bufferWriter.buffer;
   }
 
-  private serialiseComputeSettings(): ArrayBuffer {
-    const bufferWriter = new BufferWriter(
-      Renderer.COMPUTE_SETTINGS_BYTE_LENGTH
-    );
-
-    return bufferWriter.buffer;
-  }
-
-  private createRenderTexture(): GPUTexture {
-    return this.device.createTexture({
-      label: "Render Texture",
-      format: "rgba8unorm",
-      size: [this.canvas.width, this.canvas.height],
-      usage:
-        GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.STORAGE_BINDING |
-        GPUTextureUsage.COPY_DST |
-        GPUTextureUsage.RENDER_ATTACHMENT,
-    });
-  }
-
   private createRenderBindGroup(): GPUBindGroup {
     return this.device.createBindGroup({
       label: "Renderer Bind Group",
@@ -124,32 +98,11 @@ class Renderer {
         },
         {
           binding: 1,
-          resource: this.renderTexture.createView(),
+          resource: this.renderCells.renderTexture.createView(),
         },
         {
           binding: 2,
           resource: this.sampler,
-        },
-      ],
-    });
-  }
-
-  private createComputeBindGroup(): GPUBindGroup {
-    return this.device.createBindGroup({
-      label: "Compute Bind Group",
-      layout: this.computeBindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: { buffer: this.computeSettingsBuffer },
-        },
-        {
-          binding: 1,
-          resource: { buffer: this.snowflake.buffer },
-        },
-        {
-          binding: 2,
-          resource: this.renderTexture.createView(),
         },
       ],
     });
@@ -160,8 +113,8 @@ class Renderer {
       return;
     }
 
+    await this.renderCells.initialise(this.device);
     await this.initialiseRendering();
-    await this.initialiseCompute();
 
     this.updateSettings();
 
@@ -174,12 +127,10 @@ class Renderer {
       this.canvas.width = width;
       this.canvas.height = height;
 
-      this.renderTexture.destroy();
       this.gpuTimer.reset();
 
-      this.renderTexture = this.createRenderTexture();
+      this.renderCells.updateRenderTextureAndBindGroups();
       this.renderBindGroup = this.createRenderBindGroup();
-      this.computeBindGroup = this.createComputeBindGroup();
 
       this.render();
     }).observe(this.canvas);
@@ -199,7 +150,6 @@ class Renderer {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    this.renderTexture = this.createRenderTexture();
     this.sampler = this.device.createSampler({
       label: "Renderer Texture Sampler",
       minFilter: "linear",
@@ -254,92 +204,17 @@ class Renderer {
     });
   }
 
-  private async initialiseCompute(): Promise<void> {
-    this.computeSettingsBuffer = this.device.createBuffer({
-      label: "Compute Settings Buffer",
-      size: Renderer.COMPUTE_SETTINGS_BYTE_LENGTH,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-    });
-
-    const shader = await Shader.fetch(
-      this.device,
-      resolveBasePath("shaders/renderCells.wgsl")
-    );
-
-    this.computeBindGroupLayout = this.device.createBindGroupLayout({
-      label: "Compute Bind Group Layout",
-      entries: [
-        {
-          binding: 0,
-          buffer: {},
-          visibility: GPUShaderStage.COMPUTE,
-        },
-        {
-          binding: 1,
-          buffer: { type: "storage" },
-          visibility: GPUShaderStage.COMPUTE,
-        },
-        {
-          binding: 2,
-          storageTexture: {
-            access: "write-only",
-            format: "rgba8unorm",
-          },
-          visibility: GPUShaderStage.COMPUTE,
-        },
-      ],
-    });
-
-    this.computeBindGroup = this.createComputeBindGroup();
-
-    const pipelineLayout = this.device.createPipelineLayout({
-      label: "Compute Pipeline Layout",
-      bindGroupLayouts: [this.computeBindGroupLayout],
-    });
-
-    this.computePipeline = this.device.createComputePipeline({
-      label: "Compute Pipeline",
-      layout: pipelineLayout,
-      compute: {
-        module: shader.shader,
-        entryPoint: "main",
-      },
-    });
-  }
-
   public updateSettings(): void {
     this.device.queue.writeBuffer(
       this.renderSettingsBuffer,
       0,
       this.serialiseRenderSettings()
     );
-
-    this.device.queue.writeBuffer(
-      this.computeSettingsBuffer,
-      0,
-      this.serialiseComputeSettings()
-    );
   }
 
   public render(): void {
-    this.compute();
+    this.renderCells.run();
     this.renderToCanvas();
-  }
-
-  private compute(): void {
-    const commandEncoder = this.device.createCommandEncoder();
-    const computePass = this.gpuTimer.beginComputePass(commandEncoder);
-
-    computePass.setBindGroup(0, this.computeBindGroup);
-    computePass.setPipeline(this.computePipeline);
-    computePass.dispatchWorkgroups(
-      Math.ceil(this.canvas.width / 8),
-      Math.ceil(this.canvas.height / 8),
-      1
-    );
-
-    computePass.end();
-    this.device.queue.submit([commandEncoder.finish()]);
   }
 
   private renderToCanvas(): void {

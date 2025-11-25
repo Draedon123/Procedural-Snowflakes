@@ -1,11 +1,11 @@
-import { GPUTimer } from "../utils/GPUTimer";
-import { Shader } from "./Shader";
+import { GPUTimer } from "../../utils/GPUTimer";
+import { Shader } from "../Shader";
 
 abstract class ComputeShader {
   private readonly path: string;
 
   public shader!: Shader;
-  private device!: GPUDevice;
+  protected device!: GPUDevice;
   private gpuTimer!: GPUTimer;
 
   protected abstract bindGroup: GPUBindGroup;
