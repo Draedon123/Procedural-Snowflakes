@@ -2,7 +2,7 @@ import { BufferWriter } from "../utils/BufferWriter";
 import { clamp } from "../utils/clamp";
 
 class Snowflake {
-  public static readonly MAX_RADIUS: number = 100;
+  public static readonly MAX_RADIUS: number = 256;
 
   private static readonly CELL_BYTE_LENGTH: number = 3 * 4;
   private static readonly BYTE_LENGTH: number =

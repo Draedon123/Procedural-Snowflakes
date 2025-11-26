@@ -15,6 +15,7 @@ async function main(): Promise<void> {
   });
 
   await renderer.initialise();
+  renderer.snowflake.radius = 200;
 
   const loop = new Loop();
 

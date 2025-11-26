@@ -21,7 +21,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   }
 
   let centredPixelCoordinates: vec2i = vec2i(coords) - vec2i(0.5 * dimensions);
-  let hexRadius: f32 = min(dimensions.x, dimensions.y) / f32(3 * cells.radius);
+  let hexRadius: f32 = 0.95 * min(dimensions.x / (sqrt(3) * 2 * f32(cells.radius)), dimensions.y / f32(3 * cells.radius));
   let hexCoordinates: vec2i = pixelToHex(centredPixelCoordinates, hexRadius);
 
   if(!isInBounds(hexCoordinates, i32(cells.radius))){
