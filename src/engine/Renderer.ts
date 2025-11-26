@@ -24,16 +24,16 @@ class Renderer {
   public readonly settings: RendererSettings;
   public readonly snowflake: Snowflake;
 
-  private readonly device: GPUDevice;
-  private readonly ctx: GPUCanvasContext;
-  private readonly canvasFormat: GPUTextureFormat;
-  private readonly gpuTimer: GPUTimer;
-
-  private readonly computeShaders: {
+  public readonly computeShaders: {
     renderCells: RenderCells;
     stage1: Stage1;
     stage2: Stage2;
   };
+
+  private readonly device: GPUDevice;
+  private readonly ctx: GPUCanvasContext;
+  private readonly canvasFormat: GPUTextureFormat;
+  private readonly gpuTimer: GPUTimer;
 
   private initialised: boolean;
 

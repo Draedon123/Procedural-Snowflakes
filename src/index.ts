@@ -19,7 +19,7 @@ async function main(): Promise<void> {
 
   const loop = new Loop();
 
-  initialiseConfigPanel();
+  initialiseConfigPanel(renderer);
 
   loop.addCallback(() => {
     renderer.render();

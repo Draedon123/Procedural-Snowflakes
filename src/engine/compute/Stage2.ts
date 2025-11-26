@@ -22,7 +22,7 @@ class Stage2 extends ComputeShader {
     this.renderer = renderer;
 
     this.alpha = 1;
-    this.beta = 0.4;
+    this.beta = 0.7;
     this.gamma = 0.001;
   }
 
@@ -121,17 +121,20 @@ class Stage2 extends ComputeShader {
   public set alpha(alpha: number) {
     this._alpha = alpha;
     this.updateSettings();
+    this.renderer.snowflake.reset();
   }
 
   public set beta(beta: number) {
     this._beta = clamp(beta, 0, 1);
     this.renderer.snowflake.backgroundLevel = this.beta;
     this.updateSettings();
+    this.renderer.snowflake.reset();
   }
 
   public set gamma(gamma: number) {
     this._gamma = clamp(gamma, 0, 1);
     this.updateSettings();
+    this.renderer.snowflake.reset();
   }
 }
 

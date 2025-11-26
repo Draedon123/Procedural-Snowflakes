@@ -65,6 +65,10 @@ class Snowflake {
     this.device.queue.writeBuffer(this.buffer, 0, bufferWriter.buffer);
   }
 
+  public reset(): void {
+    this.update();
+  }
+
   public get initialised(): boolean {
     return this.buffer !== undefined;
   }
