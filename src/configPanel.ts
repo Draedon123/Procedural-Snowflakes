@@ -14,8 +14,14 @@ function initialiseConfigPanel(renderer: Renderer): void {
   });
 
   initialiseSlider("gamma", {
-    decimalPlaces: 3,
+    decimalPlaces: 4,
     onChange: (value) => (renderer.computeShaders.stage2.gamma = value),
+    processValue: (value) =>
+      -2.59216 * value ** 5 +
+      3.51994 * value ** 4 +
+      -0.38784 * value ** 3 +
+      0.386606 * value ** 2 +
+      0.0735023 * value,
   });
 }
 
