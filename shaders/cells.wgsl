@@ -9,6 +9,8 @@ struct Cell {
   // a kind of double buffering
   valueA: f32,
   valueB: f32,
+  diffusionA: f32,
+  diffusionB: f32,
   
   // as a bool
   receptive: u32,
@@ -30,5 +32,17 @@ fn setValue(cell: ptr<storage, Cell, read_write>, value: f32, useValue: u32) {
     cell.valueA = value;
   } else {
     cell.valueB = value;
+  }
+}
+
+fn getDiffusion(cell: ptr<storage, Cell, read_write>) -> f32 {
+  return select(cell.diffusionA, cell.diffusionB, cells.useValue == 1);
+}
+
+fn setDiffusion(cell: ptr<storage, Cell, read_write>, diffusion: f32, useValue: u32) {
+  if(useValue == 1){
+    cell.diffusionA = diffusion;
+  } else {
+    cell.diffusionB = diffusion;
   }
 }
