@@ -9,6 +9,7 @@ import { Shader } from "./Shader";
 import { Snowflake } from "./Snowflake";
 
 type RendererSettings = {
+  speed: number;
   timing?: Partial<{
     frameTimeElement: HTMLElement;
     fpsElement: HTMLElement;
@@ -93,6 +94,7 @@ class Renderer {
     this.initialised = false;
     this.settings = {
       timing: settings.timing,
+      speed: settings.speed ?? 1,
     };
   }
 
@@ -231,11 +233,13 @@ class Renderer {
   }
 
   public render(): void {
-    this.computeShaders.stage1.run();
-    this.computeShaders.stage2.run();
-    this.snowflake.nextState();
-    this.computeShaders.renderCells.run();
+    for (let i = 0; i < this.settings.speed; i++) {
+      this.computeShaders.stage1.run();
+      this.computeShaders.stage2.run();
+      this.snowflake.nextState();
+    }
 
+    this.computeShaders.renderCells.run();
     this.renderToCanvas();
   }
 

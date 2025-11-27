@@ -5,26 +5,26 @@ function initialiseConfigPanel(renderer: Renderer): void {
 
   initialiseSlider("alpha", {
     decimalPlaces: 2,
-    onChange: (value) => (renderer.computeShaders.stage2.alpha = value),
+    onChange: (alpha) => (renderer.computeShaders.stage2.alpha = alpha),
   });
 
   initialiseSlider("beta", {
     decimalPlaces: 2,
-    onChange: (value) => (renderer.computeShaders.stage2.beta = value),
+    onChange: (beta) => (renderer.computeShaders.stage2.beta = beta),
   });
 
-  function scaleGamma(value: number): number {
+  function scaleGamma(gamma: number): number {
     return (
-      -2.59216 * value ** 5 +
-      3.51994 * value ** 4 +
-      -0.38784 * value ** 3 +
-      0.386606 * value ** 2 +
-      0.0735023 * value
+      -2.59216 * gamma ** 5 +
+      3.51994 * gamma ** 4 +
+      -0.38784 * gamma ** 3 +
+      0.386606 * gamma ** 2 +
+      0.0735023 * gamma
     );
   }
   initialiseSlider("gamma", {
     decimalPlaces: 4,
-    onChange: (value) => (renderer.computeShaders.stage2.gamma = value),
+    onChange: (gamma) => (renderer.computeShaders.stage2.gamma = gamma),
     processValue: scaleGamma,
     initialise: (input) => {
       const initialValue = parseFloat(input.value);
@@ -47,6 +47,11 @@ function initialiseConfigPanel(renderer: Renderer): void {
 
       input.value = unscaledX.toString();
     },
+  });
+
+  initialiseSlider("speed", {
+    processText: (speed) => `(${speed}x)`,
+    onChange: (speed) => (renderer.settings.speed = speed),
   });
 }
 
