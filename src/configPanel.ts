@@ -13,15 +13,40 @@ function initialiseConfigPanel(renderer: Renderer): void {
     onChange: (value) => (renderer.computeShaders.stage2.beta = value),
   });
 
-  initialiseSlider("gamma", {
-    decimalPlaces: 4,
-    onChange: (value) => (renderer.computeShaders.stage2.gamma = value),
-    processValue: (value) =>
+  function scaleGamma(value: number): number {
+    return (
       -2.59216 * value ** 5 +
       3.51994 * value ** 4 +
       -0.38784 * value ** 3 +
       0.386606 * value ** 2 +
-      0.0735023 * value,
+      0.0735023 * value
+    );
+  }
+  initialiseSlider("gamma", {
+    decimalPlaces: 4,
+    onChange: (value) => (renderer.computeShaders.stage2.gamma = value),
+    processValue: scaleGamma,
+    initialise: (input) => {
+      const initialValue = parseFloat(input.value);
+      let unscaledX = initialValue;
+      let scaledX = scaleGamma(unscaledX);
+
+      let minUnscaled = 0;
+      let maxUnscaled = 1;
+
+      while (Math.abs(initialValue - scaledX) >= 1e-4) {
+        if (scaledX > initialValue) {
+          maxUnscaled = unscaledX;
+        } else {
+          minUnscaled = unscaledX;
+        }
+
+        unscaledX = (maxUnscaled + minUnscaled) / 2;
+        scaledX = scaleGamma(unscaledX);
+      }
+
+      input.value = unscaledX.toString();
+    },
   });
 }
 
@@ -46,6 +71,7 @@ function initialiseChevron(): void {
 type SliderOptions = {
   onChange: (value: number) => unknown;
   processValue: (value: number) => number;
+  initialise: (input: HTMLInputElement) => unknown;
 } & (
   | {
       processText: SliderTextProcess;
@@ -73,6 +99,9 @@ function initialiseSlider(
   if (valueDisplay === null) {
     throw new Error(`Could not find value display with id ${valueDisplay}`);
   }
+
+  const initialise = options.initialise ?? (() => {});
+  initialise(slider);
 
   slider.addEventListener("change", () => {
     const processValue: SliderOptions["processValue"] =
