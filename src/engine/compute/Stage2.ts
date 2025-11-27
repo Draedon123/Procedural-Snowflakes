@@ -125,7 +125,11 @@ class Stage2 extends ComputeShader {
   }
 
   public reset(): void {
-    this.device.queue.writeBuffer(this.finishedBuffer, 0, new Uint32Array(0));
+    if (!this.initialised) {
+      return;
+    }
+
+    this.device.queue.writeBuffer(this.finishedBuffer, 0, new Uint32Array([0]));
   }
 
   private updateSettings(): void {
@@ -155,6 +159,7 @@ class Stage2 extends ComputeShader {
   public set alpha(alpha: number) {
     this._alpha = alpha;
     this.updateSettings();
+    this.reset();
     this.renderer.snowflake.reset();
   }
 
@@ -162,12 +167,14 @@ class Stage2 extends ComputeShader {
     this._beta = clamp(beta, 0, 1);
     this.renderer.snowflake.backgroundLevel = this.beta;
     this.updateSettings();
+    this.reset();
     this.renderer.snowflake.reset();
   }
 
   public set gamma(gamma: number) {
     this._gamma = clamp(gamma, 0, 1);
     this.updateSettings();
+    this.reset();
     this.renderer.snowflake.reset();
   }
 }

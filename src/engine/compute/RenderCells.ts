@@ -77,8 +77,8 @@ class RenderCells extends ComputeShader {
 
   public override get workgroupSize(): [number, number, number] {
     return [
-      Math.ceil(this.renderer.canvas.width / 8),
-      Math.ceil(this.renderer.canvas.height / 8),
+      Math.ceil(this.renderer.canvas.width / 8) + 1,
+      Math.ceil(this.renderer.canvas.height / 8) + 1,
       1,
     ];
   }
