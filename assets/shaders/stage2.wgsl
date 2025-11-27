@@ -42,6 +42,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let newValue: f32 = value + diffusion;
   let maxValue: f32 = max(bitcast<f32>(atomicLoad(&renderSettings.maxValue)), newValue);
   atomicStore(&renderSettings.maxValue, bitcast<u32>(maxValue));
-  
+
   setValue(&cells.cells[index], newValue, cells.useValue);
+  setDiffusion(&cells.cells[index], diffusion, cells.useValue);
 }

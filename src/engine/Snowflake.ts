@@ -4,7 +4,7 @@ import { clamp } from "../utils/clamp";
 class Snowflake {
   public static readonly MAX_RADIUS: number = 256;
 
-  private static readonly CELL_BYTE_LENGTH: number = 3 * 4;
+  private static readonly CELL_BYTE_LENGTH: number = 5 * 4;
   private static readonly BYTE_LENGTH: number =
     2 * 4 +
     4 *
@@ -59,6 +59,8 @@ class Snowflake {
 
       bufferWriter.writeFloat32(value);
       bufferWriter.writeFloat32(value);
+      bufferWriter.writeFloat32(0);
+      bufferWriter.writeFloat32(0);
       bufferWriter.writeUint32(0);
     }
 
