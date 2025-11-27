@@ -30,8 +30,6 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 
   let cellIndex: u32 = getCellIndex(hexCoordinates);
   let cellValue: f32 = getValue(&cells.cells[cellIndex]);
-  // assumption: maxValue(t) >= maxValue(t - 1)
-  // hence, it's never reset
   let maxValue: f32 = bitcast<f32>(atomicLoad(&settings.maxValue));
 
   textureStore(output, id.xy, vec4f(vec3f(0.7, 0.85, 1.0) * vec3f(select(1.0 - (cellValue - 1.0) / maxValue, cellValue / 2.0, cellValue < 1.0)), 1.0));
