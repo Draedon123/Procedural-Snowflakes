@@ -10,7 +10,7 @@ class RenderCells extends ComputeShader {
   protected override computePipeline!: GPUComputePipeline;
 
   private readonly renderer: Renderer;
-  private settingsBuffer!: GPUBuffer;
+  public settingsBuffer!: GPUBuffer;
   private bindGroupLayout!: GPUBindGroupLayout;
 
   public renderTexture!: GPUTexture;
@@ -31,7 +31,7 @@ class RenderCells extends ComputeShader {
     this.settingsBuffer = device.createBuffer({
       label: "Render Cells Shader Settings Buffer",
       size: RenderCells.SETTINGS_BYTE_LENGTH,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
 
     this.bindGroupLayout = device.createBindGroupLayout({
@@ -39,7 +39,7 @@ class RenderCells extends ComputeShader {
       entries: [
         {
           binding: 0,
-          buffer: {},
+          buffer: { type: "storage" },
           visibility: GPUShaderStage.COMPUTE,
         },
         {

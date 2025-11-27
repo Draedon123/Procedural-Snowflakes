@@ -59,8 +59,8 @@ class Stage1 extends ComputeShader {
 
   public override get workgroupSize(): [number, number, number] {
     return [
-      Math.ceil((2 * this.renderer.snowflake.radius) / 8),
-      Math.ceil((2 * this.renderer.snowflake.radius) / 8),
+      Math.ceil((2 * this.renderer.snowflake.radius) / 8) + 1,
+      Math.ceil((2 * this.renderer.snowflake.radius) / 8) + 1,
       1,
     ];
   }

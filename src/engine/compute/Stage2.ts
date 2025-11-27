@@ -52,6 +52,11 @@ class Stage2 extends ComputeShader {
           buffer: { type: "storage" },
           visibility: GPUShaderStage.COMPUTE,
         },
+        {
+          binding: 2,
+          buffer: { type: "storage" },
+          visibility: GPUShaderStage.COMPUTE,
+        },
       ],
     });
 
@@ -71,6 +76,12 @@ class Stage2 extends ComputeShader {
         {
           binding: 1,
           resource: { buffer: this.renderer.snowflake.buffer },
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.renderer.computeShaders.renderCells.settingsBuffer,
+          },
         },
       ],
     });

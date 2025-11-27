@@ -7,8 +7,13 @@ struct Settings {
   gamma: f32,
 }
 
+struct RenderCellsSettings {
+  maxValue: atomic<u32>,
+}
+
 @group(0) @binding(0) var <uniform> settings: Settings;
 @group(0) @binding(1) var <storage, read_write> cells: Cells;
+@group(0) @binding(2) var <storage, read_write> renderSettings: RenderCellsSettings;
 
 @compute
 @workgroup_size(8, 8, 1)
@@ -34,5 +39,9 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     diffusion += select(neighbourValue / 12.0, 0.0, neighbour.receptive == 1);
   }
 
-  setValue(&cells.cells[index], value + diffusion, cells.useValue);
+  let newValue: f32 = value + diffusion;
+  let maxValue: f32 = max(bitcast<f32>(atomicLoad(&renderSettings.maxValue)), newValue);
+  atomicStore(&renderSettings.maxValue, bitcast<u32>(maxValue));
+  
+  setValue(&cells.cells[index], newValue, cells.useValue);
 }
