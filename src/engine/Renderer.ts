@@ -1,7 +1,5 @@
-import { BufferWriter } from "../utils/BufferWriter";
 import { GPUTimer } from "../utils/GPUTimer";
 import { resolveBasePath } from "../utils/resolveBasePath";
-import { roundUp16Bytes } from "../utils/roundUp16Bytes";
 import { PostRender } from "./compute/PostRender";
 import { RenderCells } from "./compute/RenderCells";
 import { Stage1 } from "./compute/Stage1";
@@ -18,10 +16,6 @@ type RendererSettings = {
 };
 
 class Renderer {
-  private static readonly RENDER_SETTINGS_BYTE_LENGTH: number = roundUp16Bytes(
-    1 * Float32Array.BYTES_PER_ELEMENT
-  );
-
   public readonly canvas: HTMLCanvasElement;
   public readonly settings: RendererSettings;
   public readonly snowflake: Snowflake;
@@ -40,7 +34,6 @@ class Renderer {
 
   private initialised: boolean;
 
-  private renderSettingsBuffer!: GPUBuffer;
   private renderBindGroupLayout!: GPUBindGroupLayout;
   private renderBindGroup!: GPUBindGroup;
   private renderPipeline!: GPURenderPipeline;
@@ -101,12 +94,6 @@ class Renderer {
     };
   }
 
-  private serialiseRenderSettings(): ArrayBuffer {
-    const bufferWriter = new BufferWriter(Renderer.RENDER_SETTINGS_BYTE_LENGTH);
-
-    return bufferWriter.buffer;
-  }
-
   private createRenderBindGroup(): GPUBindGroup {
     return this.device.createBindGroup({
       label: "Renderer Bind Group",
@@ -114,14 +101,10 @@ class Renderer {
       entries: [
         {
           binding: 0,
-          resource: { buffer: this.renderSettingsBuffer },
-        },
-        {
-          binding: 1,
           resource: this.computeShaders.renderCells.renderTexture.createView(),
         },
         {
-          binding: 2,
+          binding: 1,
           resource: this.sampler,
         },
       ],
@@ -139,8 +122,6 @@ class Renderer {
     await this.computeShaders.postRender.initialise(this.device);
 
     await this.initialiseRendering();
-
-    this.updateSettings();
 
     new ResizeObserver((entries) => {
       const canvas = entries[0];
@@ -169,12 +150,6 @@ class Renderer {
       format: this.canvasFormat,
     });
 
-    this.renderSettingsBuffer = this.device.createBuffer({
-      label: "Render Settings Buffer",
-      size: Renderer.RENDER_SETTINGS_BYTE_LENGTH,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
     this.sampler = this.device.createSampler({
       label: "Renderer Texture Sampler",
       minFilter: "linear",
@@ -191,16 +166,11 @@ class Renderer {
       entries: [
         {
           binding: 0,
-          buffer: {},
-          visibility: GPUShaderStage.FRAGMENT,
-        },
-        {
-          binding: 1,
           texture: {},
           visibility: GPUShaderStage.FRAGMENT,
         },
         {
-          binding: 2,
+          binding: 1,
           sampler: {},
           visibility: GPUShaderStage.FRAGMENT,
         },
@@ -227,14 +197,6 @@ class Renderer {
         targets: [{ format: this.canvasFormat }],
       },
     });
-  }
-
-  public updateSettings(): void {
-    this.device.queue.writeBuffer(
-      this.renderSettingsBuffer,
-      0,
-      this.serialiseRenderSettings()
-    );
   }
 
   public render(): void {
