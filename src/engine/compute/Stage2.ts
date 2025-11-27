@@ -22,8 +22,8 @@ class Stage2 extends ComputeShader {
     this.renderer = renderer;
 
     this.alpha = 1;
-    this.beta = 0.7;
-    this.gamma = 0.001;
+    this.beta = 0.6;
+    this.gamma = 0.01;
   }
 
   public override async initialise(device: GPUDevice): Promise<void> {
@@ -83,6 +83,8 @@ class Stage2 extends ComputeShader {
         entryPoint: "main",
       },
     });
+
+    this.updateSettings();
   }
 
   public override get workgroupSize(): [number, number, number] {
