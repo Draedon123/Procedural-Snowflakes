@@ -2,6 +2,7 @@ import { BufferWriter } from "../utils/BufferWriter";
 import { GPUTimer } from "../utils/GPUTimer";
 import { resolveBasePath } from "../utils/resolveBasePath";
 import { roundUp16Bytes } from "../utils/roundUp16Bytes";
+import { PostRender } from "./compute/PostRender";
 import { RenderCells } from "./compute/RenderCells";
 import { Stage1 } from "./compute/Stage1";
 import { Stage2 } from "./compute/Stage2";
@@ -26,6 +27,7 @@ class Renderer {
   public readonly snowflake: Snowflake;
 
   public readonly computeShaders: {
+    postRender: PostRender;
     renderCells: RenderCells;
     stage1: Stage1;
     stage2: Stage2;
@@ -61,6 +63,7 @@ class Renderer {
     this.canvasFormat = "rgba8unorm";
     this.snowflake = new Snowflake(50).initialise(this.device);
     this.computeShaders = {
+      postRender: new PostRender(this),
       renderCells: new RenderCells(this),
       stage1: new Stage1(this),
       stage2: new Stage2(this),
@@ -133,6 +136,8 @@ class Renderer {
     await this.computeShaders.renderCells.initialise(this.device);
     await this.computeShaders.stage1.initialise(this.device);
     await this.computeShaders.stage2.initialise(this.device);
+    await this.computeShaders.postRender.initialise(this.device);
+
     await this.initialiseRendering();
 
     this.updateSettings();
@@ -240,6 +245,7 @@ class Renderer {
     }
 
     this.computeShaders.renderCells.run();
+    this.computeShaders.postRender.run();
     this.renderToCanvas();
   }
 

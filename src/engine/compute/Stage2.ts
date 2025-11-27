@@ -6,12 +6,14 @@ import { ComputeShader } from "./ComputeShader";
 
 class Stage2 extends ComputeShader {
   private static readonly SETTINGS_BYTE_LENGTH: number = roundUp16Bytes(3 * 4);
+  private static readonly FINISHED_BUFFER_BYTE_LENGTH: number = 1 * 4;
 
   protected override bindGroup!: GPUBindGroup;
   protected override computePipeline!: GPUComputePipeline;
 
   private readonly renderer: Renderer;
   private settingsBuffer!: GPUBuffer;
+  public finishedBuffer!: GPUBuffer;
 
   private _alpha!: number;
   private _beta!: number;
@@ -39,6 +41,12 @@ class Stage2 extends ComputeShader {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
+    this.finishedBuffer = device.createBuffer({
+      label: "Stage 2 Shader Finished Buffer",
+      size: Stage2.FINISHED_BUFFER_BYTE_LENGTH,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+
     const bindGroupLayout = device.createBindGroupLayout({
       label: "Stage 2 Shader Bind Group Layout",
       entries: [
@@ -54,6 +62,11 @@ class Stage2 extends ComputeShader {
         },
         {
           binding: 2,
+          buffer: { type: "storage" },
+          visibility: GPUShaderStage.COMPUTE,
+        },
+        {
+          binding: 3,
           buffer: { type: "storage" },
           visibility: GPUShaderStage.COMPUTE,
         },
@@ -83,6 +96,10 @@ class Stage2 extends ComputeShader {
             buffer: this.renderer.computeShaders.renderCells.settingsBuffer,
           },
         },
+        {
+          binding: 3,
+          resource: { buffer: this.finishedBuffer },
+        },
       ],
     });
 
@@ -105,6 +122,10 @@ class Stage2 extends ComputeShader {
       Math.ceil((2 * this.renderer.snowflake.radius) / 8) + 1,
       1,
     ];
+  }
+
+  public reset(): void {
+    this.device.queue.writeBuffer(this.finishedBuffer, 0, new Uint32Array(0));
   }
 
   private updateSettings(): void {

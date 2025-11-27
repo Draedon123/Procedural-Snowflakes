@@ -83,17 +83,6 @@ class RenderCells extends ComputeShader {
     ];
   }
 
-  public override run(): void {
-    super.run();
-
-    // reset max value
-    this.device.queue.writeBuffer(
-      this.settingsBuffer,
-      0,
-      new Float32Array([0])
-    );
-  }
-
   public updateRenderTextureAndBindGroups(): void {
     this.renderTexture?.destroy();
     this.renderTexture = this.createRenderTexture();

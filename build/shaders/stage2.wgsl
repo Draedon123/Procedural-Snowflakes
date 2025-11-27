@@ -14,12 +14,13 @@ struct RenderCellsSettings {
 @group(0) @binding(0) var <uniform> settings: Settings;
 @group(0) @binding(1) var <storage, read_write> cells: Cells;
 @group(0) @binding(2) var <storage, read_write> renderSettings: RenderCellsSettings;
+@group(0) @binding(3) var <storage, read_write> finished: u32;
 
 @compute
 @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   let axial: vec2i = vec2i(id.xy) - i32(cells.radius);
-  if(!isInBounds(axial, i32(cells.radius))){
+  if(!isInBounds(axial, i32(cells.radius)) || finished == 1){
     return;
   }
 
@@ -42,6 +43,8 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let newValue: f32 = value + diffusion;
   let maxValue: f32 = max(bitcast<f32>(atomicLoad(&renderSettings.maxValue)), newValue);
   atomicStore(&renderSettings.maxValue, bitcast<u32>(maxValue));
+
+  finished = max(finished, select(0u, 1u, axialRadius(axial) == cells.radius && newValue >= 1.0));
 
   setValue(&cells.cells[index], newValue, cells.useValue);
   setDiffusion(&cells.cells[index], diffusion, cells.useValue);

@@ -52,5 +52,9 @@ fn neighbours(axial: vec2i) -> array<vec2i, 6> {
 }
 
 fn isInBounds(axial: vec2i, maxRadius: i32) -> bool {
-  return abs(axial.x) <= maxRadius && abs(axial.y) <= maxRadius && abs(-axial.x - axial.y) <= maxRadius;
+  return i32(axialRadius(axial)) <= maxRadius;
+}
+
+fn axialRadius(axial: vec2i) -> u32 {
+  return u32(max(abs(axial.x), max(abs(axial.y), abs(-axial.x - axial.y))));
 }
