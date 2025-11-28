@@ -1,11 +1,23 @@
 type LoopSettings = {
   wormholeThreshold: number;
 };
+
 type FrameData = {
   deltaTime: number;
   totalTime: number;
 };
-type LoopCallback = (frameData: FrameData) => unknown;
+
+type OnTickCallback = {
+  type: "onTick";
+  callback: (frameData: FrameData) => unknown;
+};
+
+type OnStartCallback = {
+  type: "onStart";
+  callback: () => unknown;
+};
+
+type LoopCallback = OnTickCallback | OnStartCallback;
 
 class Loop {
   public settings: LoopSettings;
@@ -31,6 +43,13 @@ class Loop {
 
     this.totalTime = 0;
     this.lastFrameTime = -1;
+
+    this.callbacks.forEach((callback) => {
+      if (callback.type === "onStart") {
+        callback.callback();
+      }
+    });
+
     this.frameID = requestAnimationFrame(this.tick.bind(this));
   }
 
@@ -77,9 +96,11 @@ class Loop {
         totalTime: totalTimeMS,
       };
 
-      for (const callback of this.callbacks) {
-        callback(frameData);
-      }
+      this.callbacks.forEach((callback) => {
+        if (callback.type === "onTick") {
+          callback.callback(frameData);
+        }
+      });
 
       this.totalTime = totalTimeMS;
     }
