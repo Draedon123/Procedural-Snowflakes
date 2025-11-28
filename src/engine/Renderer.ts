@@ -1,5 +1,7 @@
 import { GPUTimer } from "../utils/GPUTimer";
+import { Loop } from "../utils/Loop";
 import { resolveBasePath } from "../utils/resolveBasePath";
+import { Initialise } from "./compute/Initialise";
 import { PostRender } from "./compute/PostRender";
 import { RenderCells } from "./compute/RenderCells";
 import { Stage1 } from "./compute/Stage1";
@@ -19,8 +21,10 @@ class Renderer {
   public readonly canvas: HTMLCanvasElement;
   public readonly settings: RendererSettings;
   public readonly snowflake: Snowflake;
+  public readonly loop: Loop;
 
   public readonly computeShaders: {
+    initialise: Initialise;
     postRender: PostRender;
     renderCells: RenderCells;
     stage1: Stage1;
@@ -54,8 +58,10 @@ class Renderer {
     this.device = device;
     this.ctx = ctx;
     this.canvasFormat = "rgba8unorm";
+    this.loop = new Loop();
     this.snowflake = new Snowflake(50).initialise(this.device);
     this.computeShaders = {
+      initialise: new Initialise(this),
       postRender: new PostRender(this),
       renderCells: new RenderCells(this),
       stage1: new Stage1(this),
@@ -120,8 +126,23 @@ class Renderer {
     await this.computeShaders.stage1.initialise(this.device);
     await this.computeShaders.stage2.initialise(this.device);
     await this.computeShaders.postRender.initialise(this.device);
+    await this.computeShaders.initialise.initialise(this.device);
 
     await this.initialiseRendering();
+
+    this.loop.addCallback({
+      type: "onStart",
+      callback: () => {
+        this.computeShaders.initialise.run();
+      },
+    });
+
+    this.loop.addCallback({
+      type: "onTick",
+      callback: () => {
+        this.render();
+      },
+    });
 
     new ResizeObserver((entries) => {
       const canvas = entries[0];
@@ -199,7 +220,7 @@ class Renderer {
     });
   }
 
-  public render(): void {
+  private render(): void {
     for (let i = 0; i < this.settings.speed; i++) {
       this.computeShaders.stage1.run();
       this.computeShaders.stage2.run();

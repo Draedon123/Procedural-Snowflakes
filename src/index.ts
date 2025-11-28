@@ -1,6 +1,5 @@
 import "./style.css";
 import { Renderer } from "./engine/Renderer";
-import { Loop } from "./utils/Loop";
 import { initialiseConfigPanel } from "./configPanel";
 
 async function main(): Promise<void> {
@@ -17,15 +16,9 @@ async function main(): Promise<void> {
   await renderer.initialise();
   renderer.snowflake.radius = 200;
 
-  const loop = new Loop();
-
   initialiseConfigPanel(renderer);
 
-  loop.addCallback(() => {
-    renderer.render();
-  });
-
-  loop.start();
+  renderer.loop.start();
 }
 
 main().catch((error) => {

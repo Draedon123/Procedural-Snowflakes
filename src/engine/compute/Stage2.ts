@@ -12,7 +12,7 @@ class Stage2 extends ComputeShader {
   protected override computePipeline!: GPUComputePipeline;
 
   private readonly renderer: Renderer;
-  private settingsBuffer!: GPUBuffer;
+  public settingsBuffer!: GPUBuffer;
   public finishedBuffer!: GPUBuffer;
 
   private _alpha!: number;
