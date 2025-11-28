@@ -1,18 +1,8 @@
 #!import hex
 #!import cells
+#!import settings
 
-struct Settings {
-  alpha: f32,
-  beta: f32,
-  gamma: f32,
-}
-
-struct RenderCellsSettings {
-  // stores bits of f32 maxValue
-  maxValue: atomic<u32>,
-}
-
-@group(0) @binding(0) var <uniform> settings: Settings;
+@group(0) @binding(0) var <uniform> settings: SnowflakeSettings;
 @group(0) @binding(1) var <storage, read_write> cells: Cells;
 @group(0) @binding(2) var <storage, read_write> renderSettings: RenderCellsSettings;
 // as a bool

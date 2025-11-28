@@ -1,10 +1,6 @@
 #!import hex
 #!import cells
-
-struct RenderCellsSettings {
-  // stores bits of f32 maxValue
-  maxValue: atomic<u32>,
-}
+#!import settings
 
 @group(0) @binding(0) var <storage, read_write> settings: RenderCellsSettings;
 @group(0) @binding(1) var <storage, read_write> cells: Cells;

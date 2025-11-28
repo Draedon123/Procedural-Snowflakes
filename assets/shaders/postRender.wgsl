@@ -1,7 +1,4 @@
-struct RenderCellsSettings {
-  // stores bits of f32 maxValue
-  maxValue: atomic<u32>,
-}
+#!import settings
 
 // as a bool
 @group(0) @binding(0) var <storage, read_write> finished: u32;
