@@ -18,6 +18,7 @@ async function main(): Promise<void> {
 
   initialiseConfigPanel(renderer);
 
+  renderer.computeShaders.stage2.update();
   renderer.loop.start();
 }
 

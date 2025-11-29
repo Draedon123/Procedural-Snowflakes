@@ -128,14 +128,9 @@ class Renderer {
     await this.computeShaders.postRender.initialise(this.device);
     await this.computeShaders.initialise.initialise(this.device);
 
-    await this.initialiseRendering();
+    this.computeShaders.stage2.update();
 
-    this.loop.addCallback({
-      type: "onStart",
-      callback: () => {
-        this.computeShaders.initialise.run();
-      },
-    });
+    await this.initialiseRendering();
 
     this.loop.addCallback({
       type: "onTick",

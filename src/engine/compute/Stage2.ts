@@ -111,8 +111,6 @@ class Stage2 extends ComputeShader {
         entryPoint: "main",
       },
     });
-
-    this.updateSettings();
   }
 
   public override get workgroupSize(): [number, number, number] {
@@ -158,24 +156,25 @@ class Stage2 extends ComputeShader {
 
   public set alpha(alpha: number) {
     this._alpha = alpha;
-    this.updateSettings();
-    this.reset();
-    this.renderer.snowflake.reset();
+    this.update();
   }
 
   public set beta(beta: number) {
     this._beta = clamp(beta, 0, 1);
     this.renderer.snowflake.backgroundLevel = this.beta;
-    this.updateSettings();
-    this.reset();
-    this.renderer.snowflake.reset();
+    this.update();
   }
 
   public set gamma(gamma: number) {
     this._gamma = clamp(gamma, 0, 1);
+    this.update();
+  }
+
+  public update(): void {
     this.updateSettings();
     this.reset();
     this.renderer.snowflake.reset();
+    this.renderer.computeShaders?.initialise.run();
   }
 }
 

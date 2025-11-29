@@ -75,6 +75,10 @@ class Initialise extends ComputeShader {
       1,
     ];
   }
+
+  public override run(): void {
+    super.run();
+  }
 }
 
 export { Initialise };

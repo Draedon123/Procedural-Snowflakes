@@ -21,21 +21,16 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let cellValue = getValue(&cells.cells[index]);
   let cellNeighbours: array<vec2i, 6> = neighbours(axial);
   var value: f32 = select(0.0, cellValue + settings.gamma, cell.receptive == 1);
-  var diffusion: f32 = select(0.5 * cellValue, 0.0, cell.receptive == 1);
+  var diffusion: f32 = -6.0 * getDiffusion(&cells.cells[index]);
   
   for(var i: u32 = 0; i < 6; i++){
     let neighbourPosition: vec2i = cellNeighbours[i];
     let neighbourIndex: u32 = getCellIndex(neighbourPosition);
-    let neighbour: Cell = cells.cells[neighbourIndex];
-    let neighbourValue: f32 = 
-      select(
-        settings.beta,
-        getValue(&cells.cells[neighbourIndex]),
-        isInBounds(neighbourPosition, cells.radius),
-      );
     
-    diffusion += select(neighbourValue / 12.0, 0.0, neighbour.receptive == 1);
+    diffusion += select(getDiffusion(&cells.cells[neighbourIndex]), 0.0, cells.cells[neighbourIndex].receptive == 1);
   }
+
+  diffusion = getDiffusion(&cells.cells[index]) + diffusion * settings.alpha / 12.0;
 
   let newValue: f32 = value + diffusion;
   let maxValue: f32 = max(
