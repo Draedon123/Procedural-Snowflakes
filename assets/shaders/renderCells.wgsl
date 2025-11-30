@@ -46,4 +46,10 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
       1.0
     )
   );
+  // textureStore(output, id.xy, 
+  //   vec4f(
+  //     vec3f(getDiffusion(&cells.cells[cellIndex])),
+  //     1.0
+  //   )
+  // );
 }

@@ -21,17 +21,19 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
   let cellValue = getValue(&cells.cells[index]);
   let cellNeighbours: array<vec2i, 6> = neighbours(axial);
   var value: f32 = select(0.0, cellValue + settings.gamma, cell.receptive == 1);
-  var diffusion: f32 = -6.0 * getDiffusion(&cells.cells[index]);
+  let initialDiffusion = getDiffusion(&cells.cells[index]);
+  var dudt: f32 = -6.0 * initialDiffusion;
   
   for(var i: u32 = 0; i < 6; i++){
     let neighbourPosition: vec2i = cellNeighbours[i];
     let neighbourIndex: u32 = getCellIndex(neighbourPosition);
     
-    diffusion += select(getDiffusion(&cells.cells[neighbourIndex]), 0.0, cells.cells[neighbourIndex].receptive == 1);
+    dudt += getDiffusion(&cells.cells[neighbourIndex]);
   }
 
-  diffusion = getDiffusion(&cells.cells[index]) + diffusion * settings.alpha / 12.0;
+  dudt *= settings.alpha / 12.0;
 
+  let diffusion: f32 = initialDiffusion + dudt;
   let newValue: f32 = value + diffusion;
   let maxValue: f32 = max(
     bitcast<f32>(atomicLoad(&renderSettings.maxValue)),
@@ -41,7 +43,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 
   finished = max(
     finished,
-    select(0u, 1u, axialRadius(axial) == cells.radius && newValue >= 1.0)
+    select(0u, 1u, axialRadius(axial) == cells.radius && newValue >= 1.0),
   );
 
   setValue(&cells.cells[index], newValue, cells.useValue);

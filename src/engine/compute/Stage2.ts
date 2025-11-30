@@ -155,13 +155,12 @@ class Stage2 extends ComputeShader {
   }
 
   public set alpha(alpha: number) {
-    this._alpha = alpha;
+    this._alpha = Math.max(alpha, 0);
     this.update();
   }
 
   public set beta(beta: number) {
     this._beta = clamp(beta, 0, 1);
-    this.renderer.snowflake.backgroundLevel = this.beta;
     this.update();
   }
 
@@ -173,8 +172,7 @@ class Stage2 extends ComputeShader {
   public update(): void {
     this.updateSettings();
     this.reset();
-    this.renderer.snowflake.reset();
-    this.renderer.computeShaders?.initialise.run();
+    this.renderer.snowflake.update(this.alpha, this.beta);
   }
 }
 

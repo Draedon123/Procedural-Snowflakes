@@ -1,7 +1,6 @@
 import { GPUTimer } from "../utils/GPUTimer";
 import { Loop } from "../utils/Loop";
 import { resolveBasePath } from "../utils/resolveBasePath";
-import { Initialise } from "./compute/Initialise";
 import { PostRender } from "./compute/PostRender";
 import { RenderCells } from "./compute/RenderCells";
 import { Stage1 } from "./compute/Stage1";
@@ -24,7 +23,6 @@ class Renderer {
   public readonly loop: Loop;
 
   public readonly computeShaders: {
-    initialise: Initialise;
     postRender: PostRender;
     renderCells: RenderCells;
     stage1: Stage1;
@@ -61,7 +59,6 @@ class Renderer {
     this.loop = new Loop();
     this.snowflake = new Snowflake(50).initialise(this.device);
     this.computeShaders = {
-      initialise: new Initialise(this),
       postRender: new PostRender(this),
       renderCells: new RenderCells(this),
       stage1: new Stage1(this),
@@ -126,7 +123,6 @@ class Renderer {
     await this.computeShaders.stage1.initialise(this.device);
     await this.computeShaders.stage2.initialise(this.device);
     await this.computeShaders.postRender.initialise(this.device);
-    await this.computeShaders.initialise.initialise(this.device);
 
     this.computeShaders.stage2.update();
 
