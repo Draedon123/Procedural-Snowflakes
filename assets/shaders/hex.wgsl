@@ -63,14 +63,14 @@ fn isInBounds(axial: vec2i, maxRadius: u32) -> bool {
 }
 
 fn axialRadius(axial: vec2i) -> u32 {
-  let cube: vec3i = axialiToCubei(axial);
+  let cube: vec3i = abs(axialiToCubei(axial));
 
   return u32(
     max(
-      abs(cube.x),
+      cube.x,
       max(
-        abs(cube.y),
-        abs(cube.z)
+        cube.y,
+        cube.z
       ),
     )
   );
