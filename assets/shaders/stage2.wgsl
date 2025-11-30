@@ -12,10 +12,11 @@
 @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   let axial: vec2i = vec2i(id.xy) - i32(cells.radius);
-  if(!isInBounds(axial, cells.radius) || finished == 1){
+  if(!isInBounds(axial, cells.radius + 1) || finished == 1){
     return;
   }
 
+  let cellRadius: u32 = axialRadius(axial);
   let index: u32 = getCellIndex(axial);
   let cell: Cell = cells.cells[index];
   let cellValue = getValue(&cells.cells[index]);
@@ -46,6 +47,6 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     select(0u, 1u, axialRadius(axial) == cells.radius && newValue >= 1.0),
   );
 
-  setValue(&cells.cells[index], newValue, cells.useValue);
+  setValue(&cells.cells[index], select(newValue, settings.beta, cellRadius >= cells.radius), cells.useValue);
   setDiffusion(&cells.cells[index], diffusion, cells.useValue);
 }
