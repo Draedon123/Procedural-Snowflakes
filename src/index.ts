@@ -26,13 +26,17 @@ async function main(): Promise<void> {
 main().catch((error) => {
   const errorMessage =
     error instanceof Error ? error.message : JSON.stringify(error);
-  const errorElement = document.getElementById("alert");
+  const alertElement = document.getElementById("alert") as HTMLElement;
+  const errorElement = document.getElementById("error") as HTMLElement;
+  const iframe = document.getElementById("fallback") as HTMLIFrameElement;
 
-  if (errorElement !== null) {
-    errorElement.style.zIndex = "999";
-    errorElement.classList.add("error");
-    errorElement.textContent = errorMessage;
-  }
+  alertElement.style.zIndex = "999";
+
+  errorElement.classList.add("error");
+  errorElement.textContent = errorMessage;
+
+  iframe.src = "https://www.youtube.com/embed/hyhJWh_Vt0w";
+  iframe.classList.remove("hidden");
 
   console.error(errorMessage);
 });

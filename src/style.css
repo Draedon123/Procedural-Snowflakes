@@ -14,10 +14,25 @@ canvas#main {
   height: 100%;
   text-align: center;
   align-content: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-#alert.error {
+iframe {
+  margin-top: 1em;
+  width: 70%;
+  aspect-ratio: 16 / 9;
+}
+
+.error {
   color: red;
+}
+
+.hidden {
+  display: none;
 }
 
 body {
