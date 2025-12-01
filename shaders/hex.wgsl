@@ -1,5 +1,12 @@
 fn axialRound(coordinates: vec2f) -> vec2i {
-  return cubeToAxial(cubeRound(axialfToCubef(coordinates)));
+  return cubeiToAxiali(cubeRound(axialfToCubef(coordinates)));
+}
+
+fn axialiToCubei(axiali: vec2i) -> vec3i {
+  return vec3i(
+    axiali.xy,
+    -axiali.x - axiali.y,
+  );
 }
 
 fn axialfToCubef(axialf: vec2f) -> vec3f {
@@ -9,7 +16,7 @@ fn axialfToCubef(axialf: vec2f) -> vec3f {
   );
 }
 
-fn cubeToAxial(cube: vec3i) -> vec2i {
+fn cubeiToAxiali(cube: vec3i) -> vec2i {
   return cube.xy;
 }
 
@@ -51,10 +58,20 @@ fn neighbours(axial: vec2i) -> array<vec2i, 6> {
   );
 }
 
-fn isInBounds(axial: vec2i, maxRadius: i32) -> bool {
-  return i32(axialRadius(axial)) <= maxRadius;
+fn isInBounds(axial: vec2i, maxRadius: u32) -> bool {
+  return axialRadius(axial) <= maxRadius;
 }
 
 fn axialRadius(axial: vec2i) -> u32 {
-  return u32(max(abs(axial.x), max(abs(axial.y), abs(-axial.x - axial.y))));
+  let cube: vec3i = abs(axialiToCubei(axial));
+
+  return u32(
+    max(
+      cube.x,
+      max(
+        cube.y,
+        cube.z
+      ),
+    )
+  );
 }
