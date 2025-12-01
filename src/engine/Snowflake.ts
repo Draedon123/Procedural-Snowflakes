@@ -37,7 +37,7 @@ class Snowflake {
     return this;
   }
 
-  public update(alpha: number, beta: number): void {
+  public update(beta: number): void {
     if (!this.initialised) {
       return;
     }
@@ -47,10 +47,6 @@ class Snowflake {
     bufferWriter.writeUint32(this.radius);
     bufferWriter.writeUint32(this.state);
 
-    const neighbourWeight = alpha / 12;
-    const firstRingDiffusion = beta * neighbourWeight * 3;
-    const secondRingDiffusion = beta * neighbourWeight * 5;
-
     const upperBound = 4 * (this.radius + 1) * (this.radius + 1);
     for (let i = 0; i < upperBound; i++) {
       const q = (i % (2 * this.radius)) - this.radius;
@@ -59,7 +55,6 @@ class Snowflake {
       const radius = Math.max(Math.abs(q), Math.abs(r), Math.abs(-q - r));
       const isSeedCell = q === 0 && r === 0;
       const isFirstRing = radius === 1;
-      const isSecondRing = radius === 2;
       const isInBounds = radius <= this.radius;
 
       if (!isInBounds) {
@@ -69,18 +64,11 @@ class Snowflake {
 
       const value = isSeedCell ? 1 : beta;
       const receptive = isSeedCell || isFirstRing ? 1 : 0;
-      const diffusion = isSeedCell
-        ? 0
-        : isFirstRing
-          ? firstRingDiffusion
-          : isSecondRing
-            ? secondRingDiffusion
-            : beta;
 
       bufferWriter.writeFloat32(value);
       bufferWriter.writeFloat32(value);
-      bufferWriter.writeFloat32(diffusion);
-      bufferWriter.writeFloat32(diffusion);
+      bufferWriter.writeFloat32(0);
+      bufferWriter.writeFloat32(0);
       bufferWriter.writeUint32(receptive);
     }
 

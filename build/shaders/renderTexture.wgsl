@@ -1,7 +1,3 @@
-struct Settings {
-  placeholder: f32,
-}
-
 struct Vertex {
   @builtin(vertex_index) index: u32,
 }
@@ -11,9 +7,8 @@ struct VertexOutput {
   @location(0) textureCoordinates: vec2f,
 }
 
-@group(0) @binding(0) var <uniform> settings: Settings;
-@group(0) @binding(1) var renderTexture: texture_2d<f32>;
-@group(0) @binding(2) var textureSampler: sampler;
+@group(0) @binding(0) var renderTexture: texture_2d<f32>;
+@group(0) @binding(1) var textureSampler: sampler;
 
 const VERTICES: array<vec2f, 3> = array(
   vec2f(-1.0,  3.0),

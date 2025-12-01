@@ -114,7 +114,6 @@ class Stage2 extends ComputeShader {
   }
 
   public override get workgroupSize(): [number, number, number] {
-    // don't ask why i need the +1 here... it just doesn't work without it
     return [
       Math.ceil((2 * (this.renderer.snowflake.radius + 1)) / 8),
       Math.ceil((2 * (this.renderer.snowflake.radius + 1)) / 8),
@@ -172,7 +171,7 @@ class Stage2 extends ComputeShader {
   public update(): void {
     this.updateSettings();
     this.reset();
-    this.renderer.snowflake.update(this.alpha, this.beta);
+    this.renderer.snowflake.update(this.beta);
   }
 }
 

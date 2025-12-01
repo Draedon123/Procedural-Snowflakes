@@ -4,7 +4,7 @@ function initialiseConfigPanel(renderer: Renderer): void {
   initialiseChevron();
 
   initialiseSlider("alpha", {
-    decimalPlaces: 2,
+    decimalPlaces: 3,
     onChange: (alpha) => (renderer.computeShaders.stage2.alpha = alpha),
   });
 

@@ -15,10 +15,7 @@ async function main(): Promise<void> {
 
   await renderer.initialise();
   renderer.snowflake.radius = 200;
-  renderer.snowflake.update(
-    renderer.computeShaders.stage2.alpha,
-    renderer.computeShaders.stage2.beta
-  );
+  renderer.snowflake.update(renderer.computeShaders.stage2.beta);
 
   initialiseConfigPanel(renderer);
 
