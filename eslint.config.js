@@ -13,8 +13,6 @@ export default [
       },
     },
     rules: {
-      "@typescript-eslint/no-unsafe-declaration-merging": 0,
-      "@typescript-eslint/no-empty-object-type": 0,
       "@typescript-eslint/no-explicit-any": 0,
     },
   },

@@ -44,11 +44,11 @@ class Loop {
     this.totalTime = 0;
     this.lastFrameTime = -1;
 
-    this.callbacks.forEach((callback) => {
+    for (const callback of this.callbacks) {
       if (callback.type === "onStart") {
         callback.callback();
       }
-    });
+    }
 
     this.frameID = requestAnimationFrame(this.tick.bind(this));
   }
@@ -96,11 +96,11 @@ class Loop {
         totalTime: totalTimeMS,
       };
 
-      this.callbacks.forEach((callback) => {
+      for (const callback of this.callbacks) {
         if (callback.type === "onTick") {
           callback.callback(frameData);
         }
-      });
+      }
 
       this.totalTime = totalTimeMS;
     }

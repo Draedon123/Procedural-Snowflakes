@@ -42,7 +42,7 @@ class Stage1 extends ComputeShader {
       entries: [
         {
           binding: 0,
-          resource: { buffer: this.renderer.snowflake.buffer },
+          resource: { buffer: this.renderer.snowflake.cellBuffer },
         },
       ],
     });

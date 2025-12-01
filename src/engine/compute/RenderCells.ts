@@ -96,7 +96,7 @@ class RenderCells extends ComputeShader {
         },
         {
           binding: 1,
-          resource: { buffer: this.renderer.snowflake.buffer },
+          resource: { buffer: this.renderer.snowflake.cellBuffer },
         },
         {
           binding: 2,

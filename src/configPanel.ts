@@ -105,18 +105,19 @@ function initialiseSlider(
     throw new Error(`Could not find value display with id ${valueDisplay}`);
   }
 
-  const initialise = options.initialise ?? (() => {});
-  initialise(slider);
+  options.initialise?.(slider);
 
   slider.addEventListener("change", () => {
     const processValue: SliderOptions["processValue"] =
       options.processValue ?? ((value) => value);
+
     const processText: SliderTextProcess =
       "processText" in options && options.processText !== undefined
         ? options.processText
         : "decimalPlaces" in options
           ? (value) => `(${value.toFixed(options.decimalPlaces)})`
           : (value) => `(${value.toString()})`;
+
     const value = processValue(parseFloat(slider.value));
     valueDisplay.textContent = processText(value);
 

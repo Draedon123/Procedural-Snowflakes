@@ -12,7 +12,7 @@ export default defineConfig({
   publicDir: "assets",
   plugins: [
     {
-      name: "WGSL HMR",
+      name: "Additional HMR",
       handleHotUpdate(ctx) {
         if (!ctx.file.match(additionalHMR)) {
           return;

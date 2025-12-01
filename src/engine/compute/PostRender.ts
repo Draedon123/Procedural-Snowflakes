@@ -70,8 +70,8 @@ class PostRender extends ComputeShader {
     });
   }
 
-  public override get workgroupSize(): [number, number, number] {
-    return [1, 1, 1];
+  public override get workgroupSize(): [number, number?, number?] {
+    return [1];
   }
 }
 

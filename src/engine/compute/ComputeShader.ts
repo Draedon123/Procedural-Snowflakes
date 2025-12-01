@@ -46,7 +46,7 @@ abstract class ComputeShader {
     this.device.queue.submit([commandEncoder.finish()]);
   }
 
-  protected abstract get workgroupSize(): [number, number, number];
+  protected abstract get workgroupSize(): [number, number?, number?];
 }
 
 export { ComputeShader };

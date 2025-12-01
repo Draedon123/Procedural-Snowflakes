@@ -90,6 +90,18 @@ class Renderer {
       1
     );
 
+    if (!this.gpuTimer.canTimestamp) {
+      if (settings.timing?.fpsElement !== undefined) {
+        settings.timing.fpsElement.textContent =
+          "[Timestamping not supported by browser/device]";
+      }
+
+      if (settings.timing?.frameTimeElement !== undefined) {
+        settings.timing.frameTimeElement.textContent =
+          "[Timestamping not supported by browser/device]";
+      }
+    }
+
     this.initialised = false;
     this.settings = {
       timing: settings.timing,
@@ -248,24 +260,43 @@ class Renderer {
     settings: Partial<RendererSettings> = {}
   ): Promise<Renderer> {
     if (!("gpu" in navigator)) {
-      throw new Error("WebGPU not supported");
+      throw new Error("WebGPU not supported by your browser/device");
     }
 
     const adapter = await navigator.gpu.requestAdapter();
 
     if (adapter === null) {
-      throw new Error("Could not find suitable GPU Adapter");
+      throw new Error(
+        "Could not find suitable GPU Adapter. Maybe your browser/device doesn't support WebGPU?"
+      );
     }
 
     const device = await adapter.requestDevice({
-      requiredFeatures: ["timestamp-query"],
+      requiredFeatures: this.requestFeatures(adapter, "timestamp-query"),
     });
 
     if (device === null) {
-      throw new Error("Could not find suitable GPU Device");
+      throw new Error(
+        "Could not find suitable GPU Device. Maybe your browser/device doesn't support WebGPU?"
+      );
     }
 
     return new Renderer(canvas, settings, device);
+  }
+
+  private static requestFeatures(
+    adapter: GPUAdapter,
+    ...features: GPUFeatureName[]
+  ): GPUFeatureName[] {
+    return features.filter((feature) => {
+      const supported = adapter.features.has(feature);
+
+      if (!supported) {
+        console.warn(`GPU Feature ${feature} not supported`);
+      }
+
+      return supported;
+    });
   }
 }
 

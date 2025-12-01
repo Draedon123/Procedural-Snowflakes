@@ -12,7 +12,7 @@ class Snowflake {
       Snowflake.CELL_BYTE_LENGTH;
 
   public radius: number;
-  public buffer!: GPUBuffer;
+  public cellBuffer!: GPUBuffer;
   private state: 0 | 1;
   private device!: GPUDevice;
 
@@ -28,8 +28,8 @@ class Snowflake {
 
     this.device = device;
 
-    this.buffer = device.createBuffer({
-      label: "Snowflake Buffer",
+    this.cellBuffer = device.createBuffer({
+      label: "Snowflake Cell Buffer",
       size: Snowflake.BYTE_LENGTH,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
@@ -65,18 +65,21 @@ class Snowflake {
       const value = isSeedCell ? 1 : beta;
       const receptive = isSeedCell || isFirstRing ? 1 : 0;
 
+      // value
       bufferWriter.writeFloat32(value);
       bufferWriter.writeFloat32(value);
+      // diffusion
       bufferWriter.writeFloat32(0);
       bufferWriter.writeFloat32(0);
+      // receptive
       bufferWriter.writeUint32(receptive);
     }
 
-    this.device.queue.writeBuffer(this.buffer, 0, bufferWriter.buffer);
+    this.device.queue.writeBuffer(this.cellBuffer, 0, bufferWriter.buffer);
   }
 
   public get initialised(): boolean {
-    return this.buffer !== undefined;
+    return this.cellBuffer !== undefined;
   }
 
   public nextState(): void {
@@ -84,7 +87,7 @@ class Snowflake {
 
     if (this.initialised) {
       this.device.queue.writeBuffer(
-        this.buffer,
+        this.cellBuffer,
         4,
         new Uint32Array([this.state])
       );

@@ -7,10 +7,10 @@ class RollingAverage {
   }
 
   public get average(): number {
-    return (
-      this.samples.reduce((total, current) => total + current, 0) /
-      this.samples.length
-    );
+    return this.samples.length === 0
+      ? 0
+      : this.samples.reduce((total, current) => total + current, 0) /
+          this.samples.length;
   }
 
   public addSample(value: number): void {
