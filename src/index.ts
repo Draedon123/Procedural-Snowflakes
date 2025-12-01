@@ -7,6 +7,7 @@ async function main(): Promise<void> {
   const frameTimeElement = document.getElementById("frameTime") as HTMLElement;
   const fpsElement = document.getElementById("fps") as HTMLElement;
   const renderer = await Renderer.create(canvas, {
+    speed: 5,
     timing: {
       frameTimeElement,
       fpsElement,
